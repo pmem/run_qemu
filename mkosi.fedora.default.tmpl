@@ -1,0 +1,76 @@
+[Distribution]
+Distribution=@OS_DISTRO@
+Release=@OS_RELEASE@
+
+[Partitions]
+RootSize=@ROOT_SIZE@
+
+[Output]
+Format=raw_gpt
+Bootable=yes
+BootProtocols=bios
+Output=@ROOT_FS@
+
+[Packages]
+BuildPackages=make gcc libcurl-devel
+Packages=
+  openssh-clients
+  openssh-server
+  httpd
+  ndctl
+  daxctl
+  jq
+  sudo
+  make
+  gcc
+  perl
+  python
+  libcurl-devel
+  vim-enhanced
+  net-tools
+  iproute
+  dhclient
+  nmap-ncat
+  lsof
+  dnf
+  git-core
+  tar
+  NetworkManager
+  bash-completion
+  passwd
+  numactl
+  numactl-libs
+  fio
+  strace
+  man-db
+  xfsprogs
+  e2fsprogs
+  acpica-tools
+  autoconf
+  rubygem-asciidoctor
+  xmlto
+  automake
+  libtool
+  pkgconfig
+  uuid
+  libuuid
+  libuuid-devel
+  kmod-devel
+  kmod-libs
+  json-c
+  json-c-devel
+  keyutils-libs-devel
+  systemd-devel
+  rsync
+  diffutils
+  parted
+  keyutils
+  trace-cmd
+  hostname
+  gdb
+  tree
+  htop
+
+[Validation]
+Password=@ROOT_PASS@
+Autologin=yes

@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: CC0-1.0
+# Copyright (C) 2021 Intel Corporation. All rights reserved.
+#
+# To install this, either copy to your bash completions directory, found like
+# this: pkg-config --variable=completionsdir bash-completion
+# or manually source this file.
+_run_qemu()
+{
+	local cur prev opts
+	_init_completion -n = || return
+
+	COMPREPLY=()
+
+	#
+	#  Complete the arguments to some of the basic commands.
+	#
+	case "${prev}" in
+	esac
+
+	case "${cur}" in
+		--rootfs=*|--kcmd-replace=*|--kcmd-append=*|--autorun=*|--post-script=*)
+			cur=${cur#*=}
+			_filedir
+			return
+			;;
+		--rebuild=*)
+			cur=${cur#*=}
+			COMPREPLY=($(compgen -W 'wipe img kmod kernel none' -- ${cur}))
+			return
+			;;
+		--mirror=*)
+			_known_hosts_real -- "$cur"
+			return
+			;;
+		--nodes=*|--mems=*|--pmems=*|--nvmes=*|--timeout=*)
+			cur=${cur#*=}
+			local numbers="$(seq -s " " 1 1 1024)"
+			COMPREPLY=($(compgen -W "${numbers}" -- ${cur}))
+			return
+			;;
+		--preset=*)
+			cur=${cur#*=}
+			local presets="1S 2S0 2S 2S4 4S 8S 16S 16Sb"
+			presets+=" tiny small0 small med large huge insane broken"
+			COMPREPLY=($(compgen -W "${presets}" -- ${cur}))
+			return
+			;;
+		--instance=*)
+			cur=${cur#*=}
+			local numbers="$(seq -s " " 1 1 31)"
+			COMPREPLY=($(compgen -W "${numbers}" -- ${cur}))
+			return
+			;;
+	esac
+
+	COMPREPLY=( $(compgen -W '$(_parse_help "$1" | tr -d ':')' -- "$cur") )
+
+	[[ $COMPREPLY == *= ]] && compopt -o nospace
+}
+
+complete -F _run_qemu run_qemu run_qemu.sh

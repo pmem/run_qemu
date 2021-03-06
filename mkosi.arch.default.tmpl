@@ -1,0 +1,41 @@
+[Distribution]
+Distribution=@OS_DISTRO@
+Release=@OS_RELEASE@
+
+[Partitions]
+RootSize=@ROOT_SIZE@
+
+[Output]
+Format=raw_gpt
+Bootable=yes
+BootProtocols=bios
+Output=@ROOT_FS@
+
+[Packages]
+Packages=
+  acpica
+  bash-completion
+  dhclient
+  fio
+  gdb
+  git
+  iproute2
+  jq
+  kmod
+  lsof
+  man-db
+  neovim
+  net-tools
+  numactl
+  openssh
+  perl
+  python
+  strace
+  sudo
+  util-linux
+  xfsprogs
+  xmlto
+
+[Validation]
+Password=@ROOT_PASS@
+Autologin=yes
