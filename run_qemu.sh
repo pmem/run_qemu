@@ -543,6 +543,11 @@ make_rootfs()
 	fi
 	setup_autorun "mkosi.extra"
 
+	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
+	if (( mkosi_ver >= 9 )); then
+		mkosi_opts+=("--autologin")
+	fi
+	mkosi_opts+=("build")
 	if (( _arg_quiet < 3 )); then
 		echo "running: $mkosi_bin ${mkosi_opts[*]}"
 	fi
