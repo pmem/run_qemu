@@ -409,6 +409,11 @@ umount_rootfs()
 
 update_rootfs_boot_kernel()
 {
+	# rootfs kernel update is only on fedora for now
+	if [[ $distro != "fedora" ]]; then
+		return
+	fi
+
 	mount_rootfs
 
 	if [[ ! $kver ]]; then
