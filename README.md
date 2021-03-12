@@ -21,7 +21,19 @@
 # Usage Notes
  - Run this from the top level of a Linux kernel tree
    - e.g. `run_qemu.sh --cxl --git-qemu`
- - CLI help is available with `run_qemu.sh --help`
+ - The script can/will:
+   - Build the kernel with whatever .config is present
+     (It is up to the user to manage the .config)
+   - Create a rootfs image with the chosen distro using `mkosi`
+   - Perform some basic setup on the rootfs, including installing the kernel,
+     utilities (such as `ndctl`), and other convenience operations such as
+     copying your `~/.ssh/id_rsa.pub` for easy ssh access, and your `~/.bashrc`
+     etc.
+   - Boot qemu with the newly compiled kernel provided on the qemu command line,
+     and using the rootfs image above
+   - Various options influence the qemu command line generated - there are
+     options to select NUMA config, NVDIMMs, NVME devices, CXL devices etc.
+ - More detailed CLI help is available with `run_qemu.sh --help`
  - Once qemu starts, in nographic mode, the Linux console 'takes over' the
    terminal. To interact with it, the following are useful:
    - `Ctrl-a c` : switch between the qemu monitor prompt `(qemu)` and console
@@ -38,7 +50,7 @@
      - `distro`
      - `rev`
      - `builddir`
-     - `ndctl`.
+     - `ndctl`
  - To use the 'hostfwd' network, put this in your `.ssh/config`:
 
        Host rq
@@ -55,7 +67,7 @@
 ## CXL Usage
 
 The script enables generating a sane QEMU commandline for instantiating a basic CXL topology. Since QEMU support for CXL isn't yet upstream, `--git-qemu` is additionally required. The CXL related options are:
-- `--cxl`: Enables a simple CXL toplogy with:
+- `--cxl`: Enables a simple CXL topology with:
   - single host bridge
     - 512M window size at 0x4c00000000
     - Bus #52
