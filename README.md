@@ -30,7 +30,7 @@
    it will always use only that, and never go over the network even if newer
    packages are available. To force re-fetching everything, remove this
    directory, or --rebuild=wipe which removes the `builddir` entirely.
- - Which `qemu` to use can be overriden from the environment:
+ - Which `qemu` to use can be overridden from the environment:
        `qemu=/path/to/qemu/build/qemu-system-x86_64 ./run_qemu.sh [options]`
  - List of variables that have overrides via `env`:
      - `qemu`
