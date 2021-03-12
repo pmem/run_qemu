@@ -30,7 +30,7 @@
    it will always use only that, and never go over the network even if newer
    packages are available. To force re-fetching everything, remove this
    directory, or --rebuild=wipe which removes the `builddir` entirely.
- - Which `qemu` to use can be overriden from the environment:
+ - Which `qemu` to use can be overridden from the environment:
        `qemu=/path/to/qemu/build/qemu-system-x86_64 ./run_qemu.sh [options]`
  - List of variables that have overrides via `env`:
      - `qemu`
@@ -51,3 +51,28 @@
     And then `ssh rq`. You may need to open port 10022 on any local firewalls.
  - The root password for the guest VM is `root`. The serial console
    automatically logs in, and a password isn't required.
+
+## CXL Usage
+
+The script enables generating a sane QEMU commandline for instantiating a basic CXL topology. Since QEMU support for CXL isn't yet upstream, `--git-qemu` is additionally required. The CXL related options are:
+- `--cxl`: Enables a simple CXL toplogy with:
+  - single host bridge
+    - 512M window size at 0x4c00000000
+    - Bus #52
+  - single root port
+  - single Type 3 device
+    - Persistent 256M
+  - simple label storage area
+- --cxl-debug: Add any and all flags for extra debug (kernel and QEMU)
+- --cxl-hb: Turn q35 into a CXL capable Host bridge. Don't use this option unless you're working on support for this.
+- --cxl-test-run: Attempt to do a sanity test of the kernel and QEMU configuration.
+
+The following is a way to check basic sanity within the QEMU guest:
+```shell
+lspci  | grep '3[45]:00'
+34:00.0 PCI bridge: Intel Corporation Device 7075
+35:00.0 Memory controller [0502]: Intel Corporation Device 0d93 (rev 01)
+
+readlink -f /sys/bus/cxl/devices/mem0
+/sys/devices/pci0000:34/0000:34:00.0/0000:35:00.0/mem0
+```
