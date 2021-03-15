@@ -879,7 +879,7 @@ prepare_qcmd()
 		# The memory window is declared first and used throughout CXL
 		# component creation. The PA of the window is 0x4c0000000, for
 		# no particular reason.
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxl-type3,size=$cxl_backend_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxl-window1,size=$cxl_backend_size")
 		qcmd+=("-object" "memory-backend-file,id=cxl-label1,share=on,mem-path=cxl-label1,size=$cxl_label_size")
 
 		pxb_cxl_subcmd="pxb-cxl"
