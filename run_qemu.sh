@@ -313,6 +313,8 @@ __build_kernel()
 	if [[ $_arg_nfit_test == "on" ]]; then
 		sed -i \
 			-e "s/^.*DEV_DAX_PMEM_COMPAT.*$/CONFIG_DEV_DAX_PMEM_COMPAT=m/" \
+			-e "s/^.*COMPILE_TEST.*$/CONFIG_COMPILE_TEST=y/" \
+			-e "s/^.*NVDIMM_TEST_BUILD.*$/CONFIG_NVDIMM_TEST_BUILD=m/" \
 			.config
 	fi
 	if [[ $_arg_defconfig == "on" ]]; then
@@ -324,7 +326,6 @@ __build_kernel()
 	make -j"$num_build_cpus"
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
-		depmod_conf="$inst_prefix/etc/depmod.d/nfit_test.conf"
 
 		make -j"$num_build_cpus" M="$test_path"
 		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
@@ -447,6 +448,31 @@ update_rootfs_boot_kernel()
 	umount_rootfs
 }
 
+setup_depmod()
+{
+	prefix="$1"
+	depmod_dir="$prefix/etc/depmod.d"
+	depmod_conf="$depmod_dir/nfit_test.conf"
+
+	if [[ $_arg_nfit_test == "on" ]]; then
+		mkdir -p "$depmod_dir"
+		cat <<- EOF > "$depmod_conf"
+			override nfit * extra
+			override device_dax * extra
+			override dax_pmem * extra
+			override dax_pmem_core * extra
+			override dax_pmem_compat * extra
+			override libnvdimm * extra
+			override nd_blk * extra
+			override nd_btt * extra
+			override nd_e820 * extra
+			override nd_pmem * extra
+		EOF
+	else
+		rm -f "$depmod_conf"
+	fi
+}
+
 __update_existing_rootfs()
 {
 	inst_prefix="$builddir/mnt"
@@ -454,7 +480,6 @@ __update_existing_rootfs()
 	mount_rootfs
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
-		depmod_conf="$inst_prefix/etc/depmod.d/nfit_test.conf"
 
 		make -j"$num_build_cpus" M="$test_path"
 		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
@@ -468,6 +493,7 @@ __update_existing_rootfs()
 		rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
 	fi
 
+	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; setup_depmod $inst_prefix"
 	sudo -E bash -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
 	umount_rootfs
 }
@@ -531,21 +557,7 @@ make_rootfs()
 		alias nd:t7* dax_pmem
 	EOF
 
-	if [[ $_arg_nfit_test == "on" ]]; then
-		mkdir -p "$inst_prefix/etc/depmod.d"
-		cat <<- EOF > "$depmod_conf"
-			override nfit * extra
-			override device_dax * extra
-			override dax_pmem * extra
-			override dax_pmem_core * extra
-			override dax_pmem_compat * extra
-			override libnvdimm * extra
-			override nd_blk * extra
-			override nd_btt * extra
-			override nd_e820 * extra
-			override nd_pmem * extra
-		EOF
-	fi
+	setup_depmod "mkosi.extra"
 	setup_autorun "mkosi.extra"
 
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
