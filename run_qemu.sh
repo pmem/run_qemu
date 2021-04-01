@@ -893,6 +893,7 @@ prepare_qcmd()
 		# no particular reason.
 		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxl-window1,size=$cxl_backend_size")
 		qcmd+=("-object" "memory-backend-file,id=cxl-label1,share=on,mem-path=cxl-label1,size=$cxl_label_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-label2,share=on,mem-path=cxl-label2,size=$cxl_label_size")
 
 		pxb_cxl_subcmd="pxb-cxl"
 		pxb_cxl_subcmd+=",id=cxl.0,bus=pcie.0,bus_nr=52,uid=0"
@@ -901,7 +902,9 @@ prepare_qcmd()
 		qcmd+=("-device" "$pxb_cxl_subcmd")
 
 		qcmd+=("-device" "cxl-rp,id=rp0,bus=cxl.0,addr=0.0,chassis=0,slot=0")
+		qcmd+=("-device" "cxl-rp,id=rp1,bus=cxl.0,addr=1.0,chassis=0,slot=1")
 		qcmd+=("-device" "cxl-type3,bus=rp0,memdev=cxl-mem1,id=cxl-pmem0,size=$cxl_t3_size,lsa=cxl-label1")
+		qcmd+=("-device" "cxl-type3,bus=rp1,memdev=cxl-mem1,id=cxl-pmem1,size=$cxl_t3_size,lsa=cxl-label2")
 	fi
 
 	if [[ $_arg_qmp == "on" ]]; then
