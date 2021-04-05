@@ -868,8 +868,10 @@ prepare_qcmd()
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
-	qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
-	qcmd+=("-append" "${kcmd[*]}")
+	if [[ $_arg_direct_kernel == "on" ]]; then
+		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
+		qcmd+=("-append" "${kcmd[*]}")
+	fi
 
 	hostport="$((10022 + _arg_instance))"
 	if [ "$hostport" -gt 65535 ]; then
