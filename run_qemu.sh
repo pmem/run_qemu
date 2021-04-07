@@ -115,9 +115,9 @@ guest_alive()
 loop_teardown()
 {
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	looppart="${loopdev}p2"
 	if [ -b "$loopdev" ]; then
-		sudo umount "$looppart"
+		sudo umount "${loopdev}p1" || true
+		sudo umount "${loopdev}p2" || true
 		sudo losetup -d "$loopdev"
 	fi
 }
@@ -385,26 +385,35 @@ setup_autorun()
 	ln -sfr "$prefix/$systemd_unit" "$prefix/$systemd_linkdir/${systemd_unit##*/}"
 }
 
+# mount_rootfs <partnum>
 mount_rootfs()
 {
+	partnum="$1"
+	mp="mnt"
+
 	pushd "$builddir" > /dev/null || exit 1
 	test -s "$_arg_rootfs"
-	sudo rm -rf mnt
-	mkdir -p mnt/
+	mkdir -p "$mp"
 	sudo losetup -Pf "$_arg_rootfs"
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	looppart="${loopdev}p2"
+	looppart="${loopdev}p${partnum}"
 	test -b "$loopdev"
-	sudo mount "$looppart" mnt/
+	sleep 1
+	sudo mount "$looppart" "$mp"
 	popd > /dev/null || exit 1 # back to kernel tree
 }
 
+# umount_rootfs <partnum>
 umount_rootfs()
 {
+	partnum="$1"
+	mp="mnt"
+
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	looppart="${loopdev}p2"
+	looppart="${loopdev}p${partnum}"
 	test -b "$loopdev"
 	sudo umount "$looppart"
+	sudo rm -rf "$mp"
 	sudo losetup -d "$loopdev"
 }
 
@@ -415,16 +424,21 @@ update_rootfs_boot_kernel()
 		return
 	fi
 
-	mount_rootfs
-
 	if [[ ! $kver ]]; then
 		fail "Error: kver not set in update_rootfs_boot_kernel"
 	fi
 
-	sudo find "$builddir/mnt/boot/loader/entries/" -name '*.conf' -delete
-	conffile="$builddir/mnt/boot/loader/entries/fedora.conf"
+	mount_rootfs 1 # EFI system partition
+	conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
+	root_partuuid="$(sudo blkid "${loopdev}p2" -o export | awk -F'=' '/^PARTUUID/{ print $2 }')"
+	if [[ ! $root_partuuid ]]; then
+		fail "Unable to determine root partition UUID"
+	fi
 	kopts=( 
-		\$kernelopts
+		"root=PARTUUID=$root_partuuid"
+		"selinux=0"
+		"audit=0"
+		"rw"
 		"console=ttyS0"
 		"ignore_loglevel"
 		"cxl_acpi.dyndbg=+fplm"
@@ -433,19 +447,24 @@ update_rootfs_boot_kernel()
 		"cxl_core.dyndbg=+fplm"
 	)
 	sudo tee "$conffile" > /dev/null <<- EOF
-		title Fedora ($kver)
+		title run-qemu-$distro ($kver)
 		version $kver
-		linux /boot/vmlinuz-$kver
-		initrd /boot/initramfs-$kver.img
+		source /efi/EFI/Linux/linux-$kver.efi
+		linux EFI/Linux/linux-$kver.efi
 		options ${kopts[*]}
 	EOF
-	sudo tee -a "$conffile" > /dev/null <<- 'EOF'
-		grub_users $grub_users
-		grub_arg --unrestricted
-		grub_class kernel
-	EOF
+	sudo mkdir -p "$builddir/mnt/run-qemu-kernel/$kver"
+	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/EFI/Linux/linux-$kver.efi"
 
-	umount_rootfs
+	defconf="$builddir/mnt/loader/loader.conf"
+	sudo sed -i -e 's/default.*/default run-qemu-kernel-*/' "$defconf"
+	umount_rootfs 1
+
+	mount_rootfs 2 # Linux root partition
+	pushd "$builddir/mnt/boot" > /dev/null || return 1
+	sudo ln -sf "../efi/run-qemu-kernel" "run-qemu-kernel"
+	popd > /dev/null || return 1
+	umount_rootfs 2
 }
 
 setup_depmod()
@@ -477,7 +496,7 @@ __update_existing_rootfs()
 {
 	inst_prefix="$builddir/mnt"
 
-	mount_rootfs
+	mount_rootfs 2 # Linux root partition
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
@@ -495,7 +514,7 @@ __update_existing_rootfs()
 
 	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; setup_depmod $inst_prefix"
 	sudo -E bash -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
-	umount_rootfs
+	umount_rootfs 2
 }
 
 update_existing_rootfs()
