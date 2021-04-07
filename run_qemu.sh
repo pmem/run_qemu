@@ -964,6 +964,7 @@ prepare_qcmd()
 	fi
 
 	if [[ $_arg_cmdline == "on" ]]; then
+		set +x
 		for elem in "${qcmd[@]}"; do
 			if [[ $elem == -* ]]; then
 				echo
