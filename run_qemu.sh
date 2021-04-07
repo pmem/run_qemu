@@ -1048,7 +1048,7 @@ main()
 	esac
 
 	prepare_qcmd
-	if [[ $_arg_no_run == "off" ]]; then
+	if [[ $_arg_run == "on" ]]; then
 		start_qemu
 	fi
 	if [[ $_arg_post_script ]]; then
