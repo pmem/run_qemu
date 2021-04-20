@@ -412,6 +412,8 @@ umount_rootfs()
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	looppart="${loopdev}p${partnum}"
 	test -b "$loopdev"
+	sync
+	sleep 5
 	sudo umount "$looppart"
 	sudo rm -rf "$mp"
 	sudo losetup -d "$loopdev"
