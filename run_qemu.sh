@@ -714,8 +714,9 @@ options_from_file()
 
 	test -f "$file" || return
 	# unmatch lines starting with a '#' for comments
+	# unmatch blank lines
 	# lstrip and rstrip any whitespace
-	awk '!/^#/{ gsub(/^[ \t]+|[ \t]+$/, ""); print }' "$file"
+	awk '!/^#|^$/{ gsub(/^[ \t]+|[ \t]+$/, ""); print }' "$file"
 }
 
 build_kernel_cmdline()
