@@ -15,10 +15,10 @@ echo "======= auto-running $0 ========" > /dev/kmsg
 cd /root/ndctl || exit
 
 ./autogen.sh
-./configure --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64 --enable-test --enable-destructive "$@"
-make clean
-make -j12
-make install
+./configure --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64 --enable-test --enable-destructive "$@" 2>/dev/kmsg
+make clean 2>/dev/kmsg
+make -j12 2>/dev/kmsg
+make install 2>/dev/kmsg
 
 mod_list=( 
 	nfit_test
