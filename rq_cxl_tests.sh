@@ -21,7 +21,7 @@ make -j12
 make install
 
 mod_list=( 
-	cxl_mem
+	cxl_pci
 	cxl_acpi
 	cxl_core
 )
