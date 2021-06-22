@@ -436,6 +436,8 @@ update_rootfs_boot_kernel()
 	if [[ ! $root_partuuid ]]; then
 		fail "Unable to determine root partition UUID"
 	fi
+
+	# TODO: consolidate this with build_kernel_cmdline()
 	kopts=( 
 		"root=PARTUUID=$root_partuuid"
 		"selinux=0"
@@ -444,8 +446,7 @@ update_rootfs_boot_kernel()
 		"console=ttyS0"
 		"ignore_loglevel"
 		"cxl_acpi.dyndbg=+fplm"
-		"cxl_mem.dyndbg=+fplm"
-		"cxl_bus.dyndbg=+fplm"
+		"cxl_pci.dyndbg=+fplm"
 		"cxl_core.dyndbg=+fplm"
 	)
 	sudo tee "$conffile" > /dev/null <<- EOF
@@ -731,16 +732,10 @@ build_kernel_cmdline()
 		"ignore_loglevel"
 		"rw"
 	)
-	if [[ $_arg_cxl == "on" ]]; then
-		kcmd+=( 
-			"cxl_acpi.range0=$cxl_backend_size@$cxl_addr:0xf"
-		)
-	fi
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		kcmd+=( 
 			"cxl_acpi.dyndbg=+fplm"
-			"cxl_mem.dyndbg=+fplm"
-			"cxl_bus.dyndbg=+fplm"
+			"cxl_pci.dyndbg=+fplm"
 			"cxl_core.dyndbg=+fplm"
 		)
 	fi
