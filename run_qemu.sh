@@ -366,6 +366,7 @@ setup_autorun()
 	mkdir -p "$prefix/$systemd_dir"
 	mkdir -p "$prefix/$systemd_linkdir"
 	cp -L "$_arg_autorun" "$prefix/$bin_dir"
+	chmod +x "$prefix/$bin_dir/${_arg_autorun##*/}"
 	cat <<- EOF > "$prefix/$systemd_unit"
 		[Unit]
 		Description=run_qemu autorun script
