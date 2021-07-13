@@ -84,10 +84,10 @@ fi
 # shellcheck source=run_qemu_parser.sh
 . "${script_dir}/run_qemu_parser.sh" || fail "Couldn't find $parser_lib"
 
-cxl_test_script="$script_dir/rq_cxl_tests.sh"
-cxl_results_script="$script_dir/rq_cxl_results.sh"
-nfit_test_script="$script_dir/rq_nfit_tests.sh"
-nfit_results_script="$script_dir/rq_nfit_results.sh"
+cxl_test_script="$script_dir/scripts/rq_cxl_tests.sh"
+cxl_results_script="$script_dir/scripts/rq_cxl_results.sh"
+nfit_test_script="$script_dir/scripts/rq_nfit_tests.sh"
+nfit_results_script="$script_dir/scripts/rq_nfit_results.sh"
 
 pushd "$_arg_working_dir" > /dev/null || fail "couldn't cd to $_arg_working_dir"
 
