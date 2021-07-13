@@ -354,7 +354,7 @@ setup_autorun()
 	local bin_dir="/usr/local/bin"
 	local systemd_dir="/etc/systemd/system/"
 	local systemd_unit="$systemd_dir/rq_autorun.service"
-	local systemd_linkdir="$systemd_dir/multi-user.target.wants"
+	local systemd_linkdir="$systemd_dir/rq-custom.target.wants"
 
 	if [[ ! $_arg_autorun ]]; then
 		autorun_file="$prefix/$systemd_unit"
@@ -367,10 +367,17 @@ setup_autorun()
 	mkdir -p "$prefix/$systemd_linkdir"
 	cp -L "$_arg_autorun" "$prefix/$bin_dir"
 	chmod +x "$prefix/$bin_dir/${_arg_autorun##*/}"
+	cat <<- EOF > "$prefix/$systemd_dir/rq-custom.target"
+		[Unit]
+		Description=run_qemu Custom Target
+		Requires=multi-user.target
+		After=multi-user.target
+		AllowIsolate=yes
+	EOF
 	cat <<- EOF > "$prefix/$systemd_unit"
 		[Unit]
 		Description=run_qemu autorun script
-		After=network.target
+		After=multi-user.target
 
 		[Service]
 		Type=simple
@@ -381,9 +388,10 @@ setup_autorun()
 		ExecStart=$bin_dir/${_arg_autorun##*/}
 
 		[Install]
-		WantedBy=multi-user.target
+		WantedBy=rq-custom.target
 	EOF
 	ln -sfr "$prefix/$systemd_unit" "$prefix/$systemd_linkdir/${systemd_unit##*/}"
+	ln -sfr "$prefix/$systemd_dir/rq-custom.target" "$prefix/$systemd_dir/default.target"
 }
 
 # mount_rootfs <partnum>
