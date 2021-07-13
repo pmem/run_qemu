@@ -2,13 +2,13 @@
 
 fail()
 {
-	printf "[FAIL] %s failed\n" "$*" > /dev/kmsg
+	printf "[FAIL] %s\n" "$*" > /dev/kmsg
 	exit 1
 }
 
 pass()
 {
-	printf "[PASS] %s passed\n" "$*" > /dev/kmsg
+	printf "[PASS] %s\n" "$*" > /dev/kmsg
 }
 
 attempt()
@@ -33,6 +33,18 @@ tests_end()
 	exit 0
 }
 
+verify_device_presence()
+{
+	attempt "device presence"
+
+	devname="$(cxl list | jq -r '.[0].memdev')" 
+	if [[ $devname ]]; then
+		pass "cxl $devname found"
+	else
+		fail "no cxl memdev found"
+	fi
+}
+
 try_cmd()
 {
 	cmd=( "$@" )
@@ -52,5 +64,6 @@ try_cmd()
 
 tests_start
 try_cmd "list"
+verify_device_presence
 try_cmd "read-labels" "mem0"
 tests_end
