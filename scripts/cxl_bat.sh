@@ -62,8 +62,25 @@ try_cmd()
 	fi
 }
 
+test_write_labels()
+{
+	label_in="label_in"
+	label_out="label_out"
+	label_size="4088"
+
+	dd if=/dev/urandom of="$label_in" bs=1 count="$label_size"
+	try_cmd "write-labels" "-i" "$label_in" "mem0"
+	try_cmd "read-labels" -o "$label_out" "mem0"
+	if ! diff "$label_in" "$label_out"; then
+		fail "cxl write/read labels test"
+	else
+		pass "cxl write/read labels test"
+	fi
+}
+
 tests_start
 try_cmd "list"
 verify_device_presence
 try_cmd "read-labels" "mem0"
+test_write_labels
 tests_end
