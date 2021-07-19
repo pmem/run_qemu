@@ -79,6 +79,16 @@ The script enables generating a sane QEMU commandline for instantiating a basic 
 - --cxl-hb: Turn q35 into a CXL capable Host bridge. Don't use this option unless you're working on support for this.
 - --cxl-test-run: Attempt to do a sanity test of the kernel and QEMU configuration.
 
+### Kernel config
+- Make sure to Turn on CXL related options in the kernel's .config:
+```
+$ grep -i cxl .config
+CONFIG_CXL_BUS=m
+CONFIG_CXL_MEM=m
+CONFIG_CXL_MEM_RAW_COMMANDS=y
+CONFIG_CXL_ACPI=m
+```
+
 The following is a way to check basic sanity within the QEMU guest:
 ```shell
 lspci  | grep '3[45]:00'
