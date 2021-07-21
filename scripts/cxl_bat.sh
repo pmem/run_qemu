@@ -2,34 +2,34 @@
 
 fail()
 {
-	printf "[FAIL] %s\n" "$*" > /dev/kmsg
+	printf "[FAIL] %s\n" "$*" | tee /dev/kmsg
 	exit 1
 }
 
 pass()
 {
-	printf "[PASS] %s\n" "$*" > /dev/kmsg
+	printf "[PASS] %s\n" "$*" | tee /dev/kmsg
 }
 
 attempt()
 {
-	printf "[ATTEMPT] %s\n" "$*" > /dev/kmsg
+	printf "[ATTEMPT] %s\n" "$*" | tee /dev/kmsg
 }
 
 bug()
 {
-	printf "[BUG] %s\n" "$*" > /dev/kmsg
+	printf "[BUG] %s\n" "$*" | tee /dev/kmsg
 	exit 2
 }
 
 tests_start()
 {
-	printf "[START] Starting CXL BAT tests\n" > /dev/kmsg
+	printf "[START] Starting CXL BAT tests\n" | tee /dev/kmsg
 }
 
 tests_end()
 {
-	printf "[END] All CXL BAT tests completed successfully\n" > /dev/kmsg
+	printf "[END] All CXL BAT tests completed successfully\n" | tee /dev/kmsg
 	exit 0
 }
 
