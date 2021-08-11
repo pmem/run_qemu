@@ -189,6 +189,7 @@ process_options_logic()
 	if [[ $_arg_cxl_test_run == "on" ]]; then
 		_arg_cxl="on"
 		_arg_cxl_debug="on"
+		_arg_cxl_test="on"
 		if [[ ! $_arg_autorun ]]; then
 			_arg_autorun="$cxl_test_script"
 		fi
@@ -217,6 +218,10 @@ process_options_logic()
 		if [[ $_arg_timeout == "0" ]]; then
 			_arg_timeout="20"
 		fi
+	fi
+	if [[ $_arg_cxl_test == "on" ]]; then
+		_arg_cxl="on"
+		_arg_cxl_debug="on"
 	fi
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		_arg_cxl="on"
@@ -326,6 +331,12 @@ __build_kernel()
 	make -j"$num_build_cpus"
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
+
+		make -j"$num_build_cpus" M="$test_path"
+		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+	fi
+	if [[ $_arg_cxl_test == "on" ]]; then
+		test_path="tools/testing/cxl"
 
 		make -j"$num_build_cpus" M="$test_path"
 		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
@@ -482,6 +493,9 @@ setup_depmod()
 	prefix="$1"
 	depmod_dir="$prefix/etc/depmod.d"
 	depmod_conf="$depmod_dir/nfit_test.conf"
+	depmod_cxl_conf="$depmod_dir/cxl_test.conf"
+	depmod_load_dir="$prefix/etc/modules-load.d"
+	depmod_load_cxl_conf="$depmod_load_dir/cxl_test.conf"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		mkdir -p "$depmod_dir"
@@ -500,6 +514,21 @@ setup_depmod()
 	else
 		rm -f "$depmod_conf"
 	fi
+
+	if [[ $_arg_cxl_test == "on" ]]; then
+		mkdir -p "$depmod_dir"
+		cat <<- EOF > "$depmod_cxl_conf"
+			override cxl_acpi * extra
+			override cxl_core * extra
+		EOF
+		mkdir -p "$depmod_load_dir"
+		cat <<- EOF > "$depmod_load_cxl_conf"
+			cxl_test
+		EOF
+	else
+		rm -f "$depmod_cxl_conf"
+		rm -f "$depmod_load_cxl_conf"
+	fi
 }
 
 __update_existing_rootfs()
@@ -509,6 +538,12 @@ __update_existing_rootfs()
 	mount_rootfs 2 # Linux root partition
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
+
+		make -j"$num_build_cpus" M="$test_path"
+		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+	fi
+	if [[ $_arg_cxl_test == "on" ]]; then
+		test_path="tools/testing/cxl"
 
 		make -j"$num_build_cpus" M="$test_path"
 		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
@@ -746,6 +781,8 @@ build_kernel_cmdline()
 			"cxl_acpi.dyndbg=+fplm"
 			"cxl_pci.dyndbg=+fplm"
 			"cxl_core.dyndbg=+fplm"
+			"cxl_test.dyndbg=+fplm"
+			"cxl_mock.dyndbg=+fplm"
 		)
 	fi
 	if [[ $_arg_nfit_debug == "on" ]]; then
