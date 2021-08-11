@@ -305,6 +305,7 @@ install_build_initrd()
 		--kernel-image "./vmlinux" \
 		--add "bash systemd kernel-modules fs-lib" \
 		--omit "iscsi fcoe fcoe-uefi" \
+		--omit-drivers "nfit libnvdimm nd_pmem" \
 		"$inst_path/initramfs-$kver.img"
 }
 
