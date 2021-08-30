@@ -100,7 +100,27 @@ test_write_labels()
 	pass "cxl write/read labels test"
 }
 
+test_acpidev_presence()
+{
+	dev=$1
+	count=0
+	attempt "Check presence of ACPI $1 device"
+
+	for dev in /sys/bus/cxl/devices/$1*; do
+		echo "found ${dev##*/}"
+		count="$((count + 1))"
+	done
+	if ((count == 0)); then
+		fail "ACPI $1 device not found"
+	else
+		pass "ACPI $1 device found"
+		echo "found $count $1"
+	fi
+}
 tests_start
+test_acpidev_presence "root"
+test_acpidev_presence "decoder"
+test_acpidev_presence "port"
 try_cmd "list"
 verify_device_presence
 try_cmd "read-labels" "mem0" "-o" "/dev/null"
