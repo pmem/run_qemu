@@ -448,11 +448,6 @@ umount_rootfs()
 
 update_rootfs_boot_kernel()
 {
-	# rootfs kernel update is only on fedora for now
-	if [[ $distro != "fedora" ]]; then
-		return
-	fi
-
 	if [[ ! $kver ]]; then
 		fail "Error: kver not set in update_rootfs_boot_kernel"
 	fi
