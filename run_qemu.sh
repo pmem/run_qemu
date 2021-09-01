@@ -296,6 +296,12 @@ install_build_initrd()
 	make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	make INSTALL_PATH="$inst_path" INSTALL_MOD_PATH="$inst_prefix" INSTALL_HDR_PATH="$inst_prefix/usr" install
+
+	# Much of the script relies on a kernel named vmlinuz-$kver. This is
+	# distro specific as the default from Linux is simply "vmlinuz". Adjust
+	# that here.
+	[ ! -f "$inst_path/vmlinuz-$kver" ] && cp "$inst_path/vmlinuz" "$inst_path/vmlinuz-$kver"
+
 	dracut --force --verbose \
 		--no-hostonly \
 		--show-modules \
