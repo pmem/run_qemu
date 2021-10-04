@@ -107,16 +107,20 @@ test_acpidev_presence()
 	attempt "Check presence of ACPI $1 device"
 
 	for dev in /sys/bus/cxl/devices/$1*; do
+		if [ ! -e "$dev" ]; then
+			continue
+		fi
 		echo "found ${dev##*/}"
 		count="$((count + 1))"
 	done
 	if ((count == 0)); then
 		fail "ACPI $1 device not found"
 	else
-		pass "ACPI $1 device found"
+		pass "ACPI $1 device(s) found"
 		echo "found $count $1"
 	fi
 }
+
 tests_start
 test_acpidev_presence "root"
 test_acpidev_presence "decoder"
