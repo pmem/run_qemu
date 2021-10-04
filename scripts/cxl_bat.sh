@@ -42,6 +42,12 @@ get_rand_range()
 	echo "$((($RANDOM % (size + 1)) + start))"
 }
 
+initial_setup()
+{
+	# cxl_test produces memdevs we're not interested in BAT'ing
+	modprobe -r cxl_test
+}
+
 verify_device_presence()
 {
 	attempt "device presence"
@@ -122,6 +128,7 @@ test_acpidev_presence()
 }
 
 tests_start
+initial_setup
 test_acpidev_presence "root"
 test_acpidev_presence "decoder"
 test_acpidev_presence "port"
