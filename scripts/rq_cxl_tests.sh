@@ -20,10 +20,13 @@ make clean
 make -j12
 make install
 
-mod_list=( 
+mod_list=(
+	cxl_mock_mem
+	cxl_pmem
 	cxl_pci
 	cxl_acpi
 	cxl_core
+	cxl_test
 )
 
 modprobe -a -r "${mod_list[@]}"
