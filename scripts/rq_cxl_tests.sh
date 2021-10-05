@@ -19,6 +19,7 @@ cd /root/ndctl || exit
 make clean
 make -j12
 make install
+echo "======= ${0##*/} ndctl build done ========" > /dev/kmsg
 
 mod_list=(
 	cxl_mock_mem
@@ -29,13 +30,15 @@ mod_list=(
 	cxl_test
 )
 
-modprobe -a -r "${mod_list[@]}"
-modprobe -a "${mod_list[@]}"
+modprobe -a -r "${mod_list[@]}" > /dev/kmsg 2>&1
+modprobe -a "${mod_list[@]}" > /dev/kmsg 2>&1
+echo "======= ${0##*/} Module reload done ========" > /dev/kmsg
 
 logfile="cxl-test-$(date +%Y-%m-%d--%H%M%S).log"
 
 set +e
-make TESTS=libcxl check > "$logfile" 2>&1
+# disable make check here until ndctl re-enables it for libcxl
+#make TESTS=libcxl check > "$logfile" 2>&1
 
 # cat logfile > /dev/kmsg doesn't work (-EINVAL)
 dumpfile()

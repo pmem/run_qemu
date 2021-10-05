@@ -12,10 +12,10 @@ find_lines_re=(
 	"found Status capability"
 	"found Mailbox capability"
 	"found Memory Device capability"
-	"# FAIL:[[:space:]]+0"
-	"# XFAIL:[[:space:]]+0"
-	"# ERROR:[[:space:]]+0"
-	"# SKIP:[[:space:]]+0"
+#	"# FAIL:[[:space:]]+0"
+#	"# XFAIL:[[:space:]]+0"
+#	"# ERROR:[[:space:]]+0"
+#	"# SKIP:[[:space:]]+0"
 	"Done .*rq_cxl_tests.sh"
 )
 
