@@ -538,9 +538,9 @@ setup_depmod()
 		rm -f "$depmod_cxl_conf"
 		rm -f "$depmod_load_cxl_conf"
 	fi
-	system_map="$prefix/System.map"
+	system_map="$prefix/boot/System.map"
 	if [ ! -f "$system_map" ]; then
-		system_map="$prefix/System.map-$kver"
+		system_map="$prefix/boot/System.map-$kver"
 	fi
 	depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
