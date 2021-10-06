@@ -538,6 +538,11 @@ setup_depmod()
 		rm -f "$depmod_cxl_conf"
 		rm -f "$depmod_load_cxl_conf"
 	fi
+	system_map="$prefix/System.map"
+	if [ ! -f "$system_map" ]; then
+		system_map="$prefix/System.map-$kver"
+	fi
+	depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
 
 __update_existing_rootfs()
@@ -566,7 +571,7 @@ __update_existing_rootfs()
 		rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
 	fi
 
-	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; setup_depmod $inst_prefix"
+	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
 	sudo -E bash -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
 	umount_rootfs 2
 }
