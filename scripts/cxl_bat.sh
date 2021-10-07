@@ -89,20 +89,24 @@ test_write_labels()
 	label_in="label_in"
 	label_out="label_out"
 
-	for (( i = 0; i < 50; i++ )); do
-		randsize="$(get_rand_range 1 4088)"
-		#randsize="$(get_rand_range 1 1024)"
-		attempt "label size: $randsize"
-		dd if=/dev/urandom of="$label_in" bs=1 count="$randsize" > /dev/null 2>&1
-		do_cmd_silent "write-labels" "-i" "$label_in" "-s" "$randsize" "mem0"
-		do_cmd_silent "read-labels" -o "$label_out" "-s" "$randsize" "mem0"
-		if ! diff "$label_in" "$label_out"; then
-			fail "cxl write/read labels size: $randsize"
-		else
-			pass "cxl write/read labels size: $randsize"
-		fi
-		rm "$label_in" "$label_out"
-	done
+	while read -r memdev; do
+		payload_size="$(cat "/sys/bus/cxl/devices/$memdev/payload_max")"
+		label_size="$(cat "/sys/bus/cxl/devices/$memdev/label_storage_size")"
+		max_size="$((payload_size < label_size ? payload_size : label_size))"
+		for (( i = 0; i < 10; i++ )); do
+			randsize="$(get_rand_range 1 $max_size)"
+			attempt "label size: $randsize"
+			rm "$label_in" "$label_out"
+			dd if=/dev/urandom of="$label_in" bs=1 count="$randsize" > /dev/null 2>&1
+			do_cmd_silent "write-labels" "-i" "$label_in" "-s" "$randsize" "$memdev"
+			do_cmd_silent "read-labels" -o "$label_out" "-s" "$randsize" "$memdev"
+			if ! diff "$label_in" "$label_out"; then
+				fail "cxl write/read labels size: $randsize"
+			else
+				pass "cxl write/read labels size: $randsize"
+			fi
+		done
+	done < <(cxl list | jq -r '.[].memdev')
 	pass "cxl write/read labels test"
 }
 
