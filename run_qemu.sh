@@ -542,6 +542,10 @@ setup_depmod()
 	if [ ! -f "$system_map" ]; then
 		system_map="$prefix/boot/System.map-$kver"
 	fi
+	if [ ! -f "$system_map" ]; then
+		echo "not found: $system_map. Try rebuilding with '-r img'"
+		return 1
+	fi
 	depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
 
