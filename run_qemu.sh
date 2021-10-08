@@ -589,6 +589,32 @@ update_existing_rootfs()
 	fi
 }
 
+enable_systemd_service()
+{
+	servicename="$1"
+
+	if [ ! -d "mkosi.extra" ]; then
+		fail "couldn't find mkosi.extra, are we in an unexpected CWD?"
+	fi
+
+	mkdir -p mkosi.extra/etc/systemd/system/multi-user.target.wants
+
+	ln -sf "/usr/lib/systemd/system/${servicename}.service" \
+		"mkosi.extra/etc/systemd/system/multi-user.target.wants/${servicename}.service"
+}
+
+setup_network()
+{
+	mkdir -p mkosi.extra/etc/systemd/network
+	cat <<- EOF > mkosi.extra/etc/systemd/network/20-wired.network
+		[Match]
+		Name=en*
+
+		[Network]
+		DHCP=yes
+	EOF
+}
+
 make_rootfs()
 {
 	pushd "$builddir" > /dev/null || exit 1
@@ -628,9 +654,12 @@ make_rootfs()
 	fi
 
 	# enable ssh
-	mkdir -p mkosi.extra/etc/systemd/system/multi-user.target.wants
-	ln -sf /usr/lib/systemd/system/sshd.service \
-		mkosi.extra/etc/systemd/system/multi-user.target.wants/sshd.service
+	enable_systemd_service sshd
+
+	# These are needed for Arch only, but didn't seem to have any adverse effect on Fedora
+	enable_systemd_service systemd-networkd
+	enable_systemd_service systemd-resolvd
+	setup_network
 
 	# this is effectively 'daxctl migrate-device-model'
 	mkdir -p mkosi.extra/etc/modprobe.d
