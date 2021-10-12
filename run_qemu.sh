@@ -529,6 +529,7 @@ setup_depmod()
 		cat <<- EOF > "$depmod_cxl_conf"
 			override cxl_acpi * extra
 			override cxl_core * extra
+			override cxl_pmem * extra
 		EOF
 		mkdir -p "$depmod_load_dir"
 		cat <<- EOF > "$depmod_load_cxl_conf"
