@@ -659,7 +659,7 @@ make_rootfs()
 
 	# These are needed for Arch only, but didn't seem to have any adverse effect on Fedora
 	enable_systemd_service systemd-networkd
-	enable_systemd_service systemd-resolvd
+	enable_systemd_service systemd-resolved
 	setup_network
 
 	# this is effectively 'daxctl migrate-device-model'
