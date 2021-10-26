@@ -131,6 +131,16 @@ test_acpidev_presence()
 	fi
 }
 
+test_hb_chbs_warning()
+{
+	attempt "Check that each Host Bridge has a CHBS"
+	if [[ $(dmesg | grep -c "No CHBS found for Host Bridge") -gt 0 ]]; then
+		fail "One or more Host Bridges is missing a CHBS"
+	else
+		pass "Each Host Bridge has a CHBS"
+	fi
+}
+
 tests_start
 initial_setup
 test_acpidev_presence "root"
@@ -140,4 +150,5 @@ try_cmd "list"
 verify_device_presence
 try_cmd "read-labels" "mem0" "-o" "/dev/null"
 test_write_labels
+test_hb_chbs_warning
 tests_end
