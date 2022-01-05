@@ -4,4 +4,4 @@
 
 mkdir -p "$1/etc/dnf/"
 dnf_conf=/etc/dnf/dnf.conf
-[ -f "$dnf_conf" ] && cp -L "$dnf_conf" "$1/$dnf_conf"
+[ -f "$dnf_conf" ] && cp -L "$dnf_conf" "$1/$dnf_conf" || true
