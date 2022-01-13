@@ -470,6 +470,9 @@ update_rootfs_boot_kernel()
 		"cxl_acpi.dyndbg=+fplm"
 		"cxl_pci.dyndbg=+fplm"
 		"cxl_core.dyndbg=+fplm"
+		"cxl_mem.dyndbg=+fplm"
+		"cxl_port.dyndbg=+fplm"
+		"cxl_region.dyndbg=+fplm"
 	)
 	sudo tee "$conffile" > /dev/null <<- EOF
 		title run-qemu-$distro ($kver)
@@ -829,6 +832,9 @@ build_kernel_cmdline()
 			"cxl_acpi.dyndbg=+fplm"
 			"cxl_pci.dyndbg=+fplm"
 			"cxl_core.dyndbg=+fplm"
+			"cxl_mem.dyndbg=+fplm"
+			"cxl_port.dyndbg=+fplm"
+			"cxl_region.dyndbg=+fplm"
 			"cxl_test.dyndbg=+fplm"
 			"cxl_mock.dyndbg=+fplm"
 		)
