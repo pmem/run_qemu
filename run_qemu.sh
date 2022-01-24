@@ -5,7 +5,7 @@
 # default config
 : "${builddir:=./qbuild}"
 rootpw="root"
-rootfssize="8G"
+rootfssize="10G"
 nvme_size="1G"
 pmem_size="16384"  #in MiB
 pmem_label_size=2  #in MiB
