@@ -226,7 +226,7 @@ process_options_logic()
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		_arg_cxl="on"
 	fi
-	if [[ $_arg_cxl_legacy == "on" ]]; then
+	if [[ $_arg_cxl_legacy == "on" ]] || [[ $_arg_cxl == "on" ]]; then
 		_arg_git_qemu="on"
 	fi
 	if [[ $_arg_git_qemu == "on" ]]; then
@@ -967,6 +967,10 @@ prepare_qcmd()
 	if [[ $_arg_hmat == "on" ]]; then
 		machine_args+=("hmat=on")
 	fi
+	if [[ $_arg_cxl == "on" ]]; then
+		# New QEMU always wants the CXL machine
+		machine_args+=("cxl=on")
+	fi
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
 	qcmd+=("-smp" "${smp},sockets=${num_nodes},cores=${cores},threads=${threads}")
@@ -1019,6 +1023,38 @@ prepare_qcmd()
 		qcmd+=("-device" "cxl-rp,id=rp1,bus=cxl.0,addr=1.0,chassis=0,slot=1,port=1")
 		qcmd+=("-device" "cxl-type3,bus=rp0,memdev=cxl-mem1,id=cxl-pmem0,size=$cxl_t3_size,lsa=cxl-label1")
 		qcmd+=("-device" "cxl-type3,bus=rp1,memdev=cxl-mem1,id=cxl-pmem1,size=$cxl_t3_size,lsa=cxl-label2")
+	elif [[ $_arg_cxl == "on" ]]; then
+		# Create objects for devices.
+		qcmd+=("-object" "memory-backend-file,id=cxl-mem0,share=on,mem-path=cxltest0.raw,size=$cxl_t3_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxltest1.raw,size=$cxl_t3_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-mem2,share=on,mem-path=cxltest2.raw,size=$cxl_t3_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-mem3,share=on,mem-path=cxltest3.raw,size=$cxl_t3_size")
+
+		# Each device needs its own LSA
+		qcmd+=("-object" "memory-backend-file,id=cxl-lsa0,share=on,mem-path=lsa0.raw,size=$cxl_label_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-lsa1,share=on,mem-path=lsa1.raw,size=$cxl_label_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-lsa2,share=on,mem-path=lsa2.raw,size=$cxl_label_size")
+		qcmd+=("-object" "memory-backend-file,id=cxl-lsa3,share=on,mem-path=lsa3.raw,size=$cxl_label_size")
+
+		# Create the "host bridges"
+		qcmd+=("-device" "pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53")
+		qcmd+=("-device" "pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191")
+
+		# Create the root ports
+		qcmd+=("-device" "cxl-rp,id=hb0rp0,bus=cxl.0,chassis=0,slot=0,port=0")
+		qcmd+=("-device" "cxl-rp,id=hb0rp1,bus=cxl.0,chassis=0,slot=1,port=1")
+		qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0")
+		qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
+
+		# Create the devices
+		qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,size=$cxl_t3_size,lsa=cxl-lsa0")
+		qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,size=$cxl_t3_size,lsa=cxl-lsa1")
+		qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,size=$cxl_t3_size,lsa=cxl-lsa2")
+		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,size=$cxl_t3_size,lsa=cxl-lsa3")
+
+		# Finally, the CFMWS entries
+		qcmd+=("-cxl-fixed-memory-window" "targets=cxl.0,size=4G,interleave-granularity=8k")
+		qcmd+=("-cxl-fixed-memory-window" "targets=cxl.0,targets=cxl.1,size=4G,interleave-granularity=8k")
 	fi
 
 	if [[ $_arg_qmp == "on" ]]; then
