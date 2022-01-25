@@ -967,9 +967,6 @@ prepare_qcmd()
 	if [[ $_arg_hmat == "on" ]]; then
 		machine_args+=("hmat=on")
 	fi
-	if [[ $_arg_cxl_hb == "on" ]]; then
-		machine_args+=("cxl=on")
-	fi
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
 	qcmd+=("-smp" "${smp},sockets=${num_nodes},cores=${cores},threads=${threads}")
