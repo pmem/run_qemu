@@ -23,6 +23,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_SINGLE([log], [l], [Output the qemu console to FILE instead of stdout], )
 # ARG_OPTIONAL_BOOLEAN([hmat], [H], [Setup an HMAT table in qemu], )
 # ARG_OPTIONAL_BOOLEAN([cxl], , [Setup a sane CXL topology], )
+# ARG_OPTIONAL_BOOLEAN([cxl-legacy], , [Setup a sane CXL topology (original device managed windows)], )
 # ARG_OPTIONAL_BOOLEAN([cxl-debug], , [Enable 'dyndbg' for CXL modules. Implies --cxl], )
 # ARG_OPTIONAL_BOOLEAN([cxl-hb], , [Enable CXL on the main host bridge], [off])
 # ARG_OPTIONAL_BOOLEAN([cxl-test], , [Setup an environment for CXL unit tests\n  - include CXL 'extra' modules to mock a CXL hierarchy using the kernel's 'cxl_test' facility], )

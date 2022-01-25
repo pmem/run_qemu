@@ -226,7 +226,7 @@ process_options_logic()
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		_arg_cxl="on"
 	fi
-	if [[ $_arg_cxl == "on" ]]; then
+	if [[ $_arg_cxl_legacy == "on" ]]; then
 		_arg_git_qemu="on"
 	fi
 	if [[ $_arg_git_qemu == "on" ]]; then
@@ -1000,7 +1000,7 @@ prepare_qcmd()
 	qcmd+=("-device" "e1000,netdev=net0,mac=$mac_addr")
 	qcmd+=("-netdev" "user,id=net0,hostfwd=tcp::$hostport-:22")
 
-	if [[ $_arg_cxl == "on" ]]; then
+	if [[ $_arg_cxl_legacy == "on" ]]; then
 		# Create a single host bridge with a single root port, and a
 		# Type3 device (of 256M PMEM). The host bridge will be 52:0.0
 		# for no particular reason.
