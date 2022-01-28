@@ -619,6 +619,24 @@ setup_network()
 	EOF
 }
 
+prepare_ndctl_build()
+{
+	cat <<- EOF > mkosi.postinst
+		#!/bin/bash -ex
+
+		if [[ ! -d /root/ndctl ]]; then
+			exit 0
+		fi
+		pushd /root/ndctl
+		rm -rf build
+		meson setup build
+		meson configure -Dtest=enabled -Ddestructive=enabled build
+		meson compile -C build
+		meson install -C build
+	EOF
+	chmod +x mkosi.postinst
+}
+
 make_rootfs()
 {
 	pushd "$builddir" > /dev/null || exit 1
@@ -675,6 +693,7 @@ make_rootfs()
 	setup_depmod "mkosi.extra"
 	setup_autorun "mkosi.extra"
 
+	prepare_ndctl_build
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
 	if (( mkosi_ver >= 9 )); then
 		mkosi_opts+=("--autologin")
