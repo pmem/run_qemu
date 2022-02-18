@@ -323,11 +323,9 @@ __build_kernel()
 	mkdir -p "$inst_path"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
-		sed -i \
-			-e "s/^.*DEV_DAX_PMEM_COMPAT.*$/CONFIG_DEV_DAX_PMEM_COMPAT=m/" \
-			-e "s/^.*COMPILE_TEST.*$/CONFIG_COMPILE_TEST=y/" \
-			-e "s/^.*NVDIMM_TEST_BUILD.*$/CONFIG_NVDIMM_TEST_BUILD=m/" \
-			.config
+		if ! grep -qE "CONFIG_NVDIMM_TEST_BUILD=[ym]" .config; then
+			fail "--nfit-test requires CONFIG_NVDIMM_TEST_BUILD"
+		fi
 	fi
 	if [[ $_arg_defconfig == "on" ]]; then
 		make olddefconfig
