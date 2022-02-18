@@ -871,8 +871,8 @@ build_kernel_cmdline()
 	fi
 	if [[ $_arg_nfit_test == "on" ]]; then
 		kcmd+=( 
-			"memmap=1G!6G,4G!7G"
-			"efi_fake_mem=1G@11G:0x40000"
+			"memmap=3G!6G,1G!9G"
+			"efi_fake_mem=2G@10G:0x40000"
 		)
 	fi
 
