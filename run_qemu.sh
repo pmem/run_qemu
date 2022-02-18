@@ -322,11 +322,6 @@ __build_kernel()
 
 	mkdir -p "$inst_path"
 
-	if [[ $_arg_nfit_test == "on" ]]; then
-		if ! grep -qE "CONFIG_NVDIMM_TEST_BUILD=[ym]" .config; then
-			fail "--nfit-test requires CONFIG_NVDIMM_TEST_BUILD"
-		fi
-	fi
 	if [[ $_arg_defconfig == "on" ]]; then
 		make olddefconfig
 		make prepare
