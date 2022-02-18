@@ -494,7 +494,6 @@ setup_depmod()
 	depmod_conf="$depmod_dir/nfit_test.conf"
 	depmod_cxl_conf="$depmod_dir/cxl_test.conf"
 	depmod_load_dir="$prefix/etc/modules-load.d"
-	depmod_load_nfit_conf="$depmod_load_dir/nfit_test.conf"
 	depmod_load_cxl_conf="$depmod_load_dir/cxl_test.conf"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
@@ -511,13 +510,8 @@ setup_depmod()
 			override nd_e820 * extra
 			override nd_pmem * extra
 		EOF
-		mkdir -p "$depmod_load_dir"
-		cat <<- EOF > "$depmod_load_nfit_conf"
-			nfit_test
-		EOF
 	else
 		rm -f "$depmod_conf"
-		rm -f "$depmod_load_nfit_conf"
 	fi
 
 	if [[ $_arg_cxl_test == "on" ]]; then
