@@ -1059,8 +1059,8 @@ prepare_qcmd()
 		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,size=$cxl_t3_size,lsa=cxl-lsa3")
 
 		# Finally, the CFMWS entries
-		qcmd+=("-cxl-fixed-memory-window" "targets=cxl.0,size=4G,interleave-granularity=8k")
-		qcmd+=("-cxl-fixed-memory-window" "targets=cxl.0,targets=cxl.1,size=4G,interleave-granularity=8k")
+		qcmd+=("-cxl-fixed-memory-window" "targets.0=cxl.0,size=4G,interleave-granularity=8k")
+		qcmd+=("-cxl-fixed-memory-window" "targets.0=cxl.0,targets.1=cxl.1,size=4G,interleave-granularity=8k")
 	fi
 
 	if [[ $_arg_qmp == "on" ]]; then
