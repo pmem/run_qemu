@@ -1053,10 +1053,10 @@ prepare_qcmd()
 		qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
 
 		# Create the devices
-		qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,size=$cxl_t3_size,lsa=cxl-lsa0")
-		qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,size=$cxl_t3_size,lsa=cxl-lsa1")
-		qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,size=$cxl_t3_size,lsa=cxl-lsa2")
-		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,size=$cxl_t3_size,lsa=cxl-lsa3")
+		qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0")
+		qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1")
+		qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
+		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
 
 		# Finally, the CFMWS entries
 		qcmd+=("-cxl-fixed-memory-window" "targets.0=cxl.0,size=4G,interleave-granularity=8k")
