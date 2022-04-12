@@ -893,8 +893,7 @@ get_ovmf_binaries()
 		return 0
 	fi
 
-	tar --strip-components=4 -xaf edk2-ovmf.tar.zst  usr/share/edk2-ovmf/x64/OVMF_CODE.fd
-	tar --strip-components=4 -xaf edk2-ovmf.tar.zst usr/share/edk2-ovmf/x64/OVMF_VARS.fd
+	tar -I zstd --strip-components=4 -xf edk2-ovmf.tar.zst usr/share/edk2-ovmf/x64/OVMF_CODE.fd usr/share/edk2-ovmf/x64/OVMF_VARS.fd
 }
 
 setup_nvme()
