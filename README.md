@@ -2,6 +2,9 @@
  - mkosi
    - e.g. `dnf install mkosi`
  - `qemu-system-x86_64`
+ - rsync
+ - dracut
+ - enabled virtualization (KVM)
  - nopasswd sudo preferred, or run as root, or enter passwords into the prompt
  several times
  - `argbash` to generate the argument parser lib (using `parser_generator.m4`)
