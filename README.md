@@ -86,10 +86,14 @@ The script enables generating a sane QEMU commandline for instantiating a basic 
 - Make sure to Turn on CXL related options in the kernel's .config:
 ```
 $ grep -i cxl .config
-CONFIG_CXL_BUS=m
-CONFIG_CXL_MEM=m
+CONFIG_CXL_BUS=y
+CONFIG_CXL_PCI=m
 CONFIG_CXL_MEM_RAW_COMMANDS=y
 CONFIG_CXL_ACPI=m
+CONFIG_CXL_PMEM=m
+CONFIG_CXL_MEM=m
+CONFIG_CXL_PORT=y
+CONFIG_CXL_SUSPEND=y
 ```
 
 The following is a way to check basic sanity within the QEMU guest:
