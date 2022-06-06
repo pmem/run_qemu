@@ -34,7 +34,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([qmp], , [Open a QMP socket at unix:./run_qemu_qmp], )
 # ARG_OPTIONAL_BOOLEAN([rw], , [Make guest image writeable (remove -snapshot)\n (Note that an image rebuild will lose any changes made via --rw)], )
 # ARG_OPTIONAL_BOOLEAN([curses], , [Default display is -nographic. switch to -curses instead with this option.\n Use Esc+1, Esc+2, etc. to switch between the different screens.\n 'q' in the monitor screen to quit], )
-# ARG_OPTIONAL_BOOLEAN([git-qemu], [g], [Use a qemu tree at '~/git/qemu/' for qemu binaries.\n This overrides any qemu=<foo> setting from the env.\n This is required and forced for any cxl related options], )
+# ARG_OPTIONAL_SINGLE([git-qemu], , [Use specified qemu tree for qemu binaries.\n This overrides any qemu=<foo> setting from the env.\n This is required and forced for any cxl related options], )
 # ARG_OPTIONAL_BOOLEAN([nfit-test], , [Setup an environment for unit tests\n  - include libnvdimm 'extra' modules\n  - add some memmap reserved memory\n Note: --rebuild=img or higher required when switching either to or away from nfit-test.\n This overrides any supplied 'preset' or topology options and forces preset=med], )
 # ARG_OPTIONAL_BOOLEAN([defconfig], , [Run 'make olddefconfig' before the kernel build], )
 # ARG_OPTIONAL_BOOLEAN([cmdline], , [Print the final qemu command line, but don't start qemu], )

@@ -227,16 +227,18 @@ process_options_logic()
 		_arg_cxl="on"
 	fi
 	if [[ $_arg_cxl_legacy == "on" ]] || [[ $_arg_cxl == "on" ]]; then
-		_arg_git_qemu="on"
+		if [[ ! $_arg_git_qemu ]]; then
+			_arg_git_qemu=~/git/qemu/
+		fi
 	fi
-	if [[ $_arg_git_qemu == "on" ]]; then
-		qemu=~/git/qemu/x86_64-softmmu/qemu-system-x86_64
-		qemu_img=~/git/qemu/qemu-img
-		qmp=~/git/qemu/scripts/qmp/qmp-shell
+	if [[ $_arg_git_qemu ]]; then
+		qemu=${_arg_git_qemu}/x86_64-softmmu/qemu-system-x86_64
+		qemu_img=${_arg_git_qemu}/qemu-img
+		qmp=${_arg_git_qemu}/scripts/qmp/qmp-shell
 		# upstream changed where binaries go recently
 		if [ ! -f "$qemu_img" ]; then
-			qemu=~/git/qemu/build/qemu-system-x86_64
-			qemu_img=~/git/qemu/build/qemu-img
+			qemu=${_arg_git_qemu}/build/qemu-system-x86_64
+			qemu_img=${_arg_git_qemu}/build/qemu-img
 		fi
 		if [ ! -x "$qemu" ]; then
 			fail "expected to find $qemu"
