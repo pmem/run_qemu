@@ -649,8 +649,8 @@ make_rootfs()
 	[ -f "$rootfs_script" ] && source "$rootfs_script" mkosi.extra/
 
 	cp -Lr ~/.bash* mkosi.extra/root/
-	if [ -f ~/.vim* ]; then
-		rsync "${rsync_opts[@]}" ~/.vim* mkosi.extra/root/
+	if [ -f ~/.vimrc ]; then
+		rsync "${rsync_opts[@]}" ~/.vimrc mkosi.extra/root/
 	fi
 	mkdir -p mkosi.extra/root/bin
 	if [ -d ~/git/extra-scripts ]; then
