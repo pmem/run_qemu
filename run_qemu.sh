@@ -520,6 +520,8 @@ setup_depmod()
 			override cxl_acpi * extra
 			override cxl_core * extra
 			override cxl_pmem * extra
+			override cxl_mem * extra
+			override cxl_port * extra
 		EOF
 		mkdir -p "$depmod_load_dir"
 		cat <<- EOF > "$depmod_load_cxl_conf"
@@ -550,16 +552,24 @@ __update_existing_rootfs()
 
 		make -j"$num_build_cpus" M="$test_path"
 		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+	else
+		sudo rm -rf "$test_path"/*.ko
 	fi
 	if [[ $_arg_cxl_test == "on" ]]; then
 		test_path="tools/testing/cxl"
 
 		make -j"$num_build_cpus" M="$test_path"
 		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+	else
+		sudo rm -rf "$test_path"/*.ko
 	fi
 	sudo make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	sudo make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	sudo make INSTALL_PATH="$inst_prefix" INSTALL_MOD_PATH="$inst_prefix" INSTALL_HDR_PATH="$inst_prefix/usr" install
+
+	if [[ $_arg_cxl_test == "off" ]]; then
+		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
+	fi
 
 	ndctl_dst="$inst_prefix/root/ndctl"
 	if [ -d "$ndctl" ] && [ -d "$ndctl_dst" ]; then
