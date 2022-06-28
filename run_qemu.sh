@@ -1070,8 +1070,18 @@ prepare_qcmd()
 		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
 
 		# Finally, the CFMWS entries
-		qcmd+=("-cxl-fixed-memory-window" "targets.0=cxl.0,size=4G,interleave-granularity=8k")
-		qcmd+=("-cxl-fixed-memory-window" "targets.0=cxl.0,targets.1=cxl.1,size=4G,interleave-granularity=8k")
+		declare -a cfmws_params
+		while read -r param; do cfmws_params+=("$param"); done <<- EOF
+			cxl-fmw.0.targets.0=cxl.0,
+			cxl-fmw.0.size=4G,
+			cxl-fmw.0.interleave-granularity=8k,
+
+			cxl-fmw.1.targets.0=cxl.0,
+			cxl-fmw.1.targets.1=cxl.1,
+			cxl-fmw.1.size=4G,
+			cxl-fmw.1.interleave-granularity=8k
+		EOF
+		qcmd+=("-M" "$(printf %s "${cfmws_params[@]}")")
 	fi
 
 	if [[ $_arg_qmp == "on" ]]; then
