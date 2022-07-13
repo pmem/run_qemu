@@ -466,6 +466,13 @@ update_rootfs_boot_kernel()
 		"cxl_mem.dyndbg=+fplm"
 		"cxl_port.dyndbg=+fplm"
 		"cxl_region.dyndbg=+fplm"
+		"libnvdimm.dyndbg=+fplm"
+		"nfit.dyndbg=+fplm"
+		"nfit_test.dyndbg=+fplm"
+		"nd_pmem.dyndbg=+fplm"
+		"nd_btt.dyndbg=+fplm"
+		"dax.dyndbg=+fplm"
+		"nfit_test_iomap.dyndbg=+fplm"
 	)
 	sudo tee "$conffile" > /dev/null <<- EOF
 		title run-qemu-$distro ($kver)
