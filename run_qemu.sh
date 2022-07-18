@@ -219,10 +219,6 @@ process_options_logic()
 			_arg_timeout="20"
 		fi
 	fi
-	if [[ $_arg_cxl_test == "on" ]]; then
-		_arg_cxl="on"
-		_arg_cxl_debug="on"
-	fi
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		_arg_cxl="on"
 	fi
