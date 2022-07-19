@@ -298,6 +298,10 @@ install_build_initrd()
 	# that here.
 	[ ! -f "$inst_path/vmlinuz-$kver" ] && cp "$inst_path/vmlinuz" "$inst_path/vmlinuz-$kver"
 
+	# mkosi 13 onwards uses 'kernel-install add <uname> to install the kernel,
+	# and it expects a /lib/modules/$kver/vmlinuz
+	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
+
 	dracut --force --verbose \
 		--no-hostonly \
 		--show-modules \
