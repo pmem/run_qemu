@@ -485,8 +485,9 @@ update_rootfs_boot_kernel()
 	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/EFI/Linux/linux-$kver.efi"
 
 	defconf="$builddir/mnt/loader/loader.conf"
-	sudo sed -i -e 's/default.*/default run-qemu-kernel-*/' "$defconf"
 	sudo sed -i -e 's/^#.*timeout.*/timeout 4/' "$defconf"
+	sudo sed -i -e '/default.*/d' "$defconf"
+	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
 	umount_rootfs 1
 
 	mount_rootfs 2 # Linux root partition
