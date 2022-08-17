@@ -12,10 +12,11 @@ find_lines_re=(
 	"found Status capability"
 	"found Mailbox capability"
 	"found Memory Device capability"
-#	"# FAIL:[[:space:]]+0"
-#	"# XFAIL:[[:space:]]+0"
-#	"# ERROR:[[:space:]]+0"
-#	"# SKIP:[[:space:]]+0"
+	"[0-9]+/[0-9]+ ndctl:.*OK.*"
+	"Ok:[ \t]+[0-9]+"
+	"Fail:[ \t]+0"
+	"Skipped:[ \t]+0"
+	"Timeout:[ \t]+0"
 	"Done .*rq_cxl_tests.sh"
 )
 
@@ -37,6 +38,8 @@ raw_command_re=(
 # lines that indicate a fatal error if present
 error_lines_re=( 
 	"make:.*[Makefile:.*check] Error"
+	"ninja: build stopped: subcommand failed"
+	"[0-9]+/[0-9]+ ndctl:.*FAIL.*"
 )
 
 warn_count=0

@@ -14,40 +14,22 @@ echo "======= auto-running $0 ========" > /dev/kmsg
 
 cd /root/ndctl || exit
 
-./autogen.sh
-./configure --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64 --enable-test --enable-destructive "$@" 2>/dev/kmsg
-make clean 2>/dev/kmsg
-make -j12 2>/dev/kmsg
-make install 2>/dev/kmsg
+rm -rf build
+meson setup build 2>/dev/kmsg
+meson configure -Dtest=enabled -Ddestructive=enabled -Dasciidoctor=enabled build 2>/dev/kmsg
+meson compile -C build 2>/dev/kmsg
+meson install -C build 2>/dev/kmsg
 
 mod_list=( 
 	nfit_test
-	device_dax
-	dax_pmem
-	dax_hmem
-	nd_pmem
-	dax_pmem_core
-	kmem
-	nfit
-	nd_blk
-	nd_btt
-	nd_e820
-	libnvdimm
-	nfit_test_iomap
 )
 
-ndctl disable-namespace all
-ndctl disable-region all
-modprobe -a -r "${mod_list[@]}"
-modprobe -a "${mod_list[@]}"
-ndctl enable-region all
-ndctl wait-scrub
+modprobe -r "${mod_list[@]}"
 
 logfile="ndctl-test-$(date +%Y-%m-%d--%H%M%S).log"
 
 set +e
-make check > "$logfile" 2>&1
-ndctl wait-scrub
+meson test -C build > "$logfile" 2>&1
 
 # cat logfile > /dev/kmsg doesn't work (-EINVAL)
 dumpfile()
@@ -60,7 +42,7 @@ dumpfile()
 }
 
 dumpfile test/test-suite.log
-echo "======= make-check.log ========" > /dev/kmsg
+echo "======= meson-test.log ========" > /dev/kmsg
 dumpfile "$logfile"
 echo "======= Done $0 ========" > /dev/kmsg
 systemctl poweroff

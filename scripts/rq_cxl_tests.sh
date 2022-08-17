@@ -14,31 +14,19 @@ echo "======= auto-running $0 ========" > /dev/kmsg
 
 cd /root/ndctl || exit
 
-./autogen.sh
-./configure --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64 --enable-test --enable-destructive "$@"
-make clean
-make -j12
-make install
+rm -rf build
+meson setup build 2>/dev/kmsg
+meson configure -Dtest=enabled -Ddestructive=enabled -Dasciidoctor=enabled build 2>/dev/kmsg
+meson compile -C build 2>/dev/kmsg
+meson install -C build 2>/dev/kmsg
+
 echo "======= ${0##*/} ndctl build done ========" > /dev/kmsg
-
-mod_list=(
-	cxl_mock_mem
-	cxl_pmem
-	cxl_pci
-	cxl_acpi
-	cxl_core
-	cxl_test
-)
-
-modprobe -a -r "${mod_list[@]}" > /dev/kmsg 2>&1
-modprobe -a "${mod_list[@]}" > /dev/kmsg 2>&1
-echo "======= ${0##*/} Module reload done ========" > /dev/kmsg
 
 logfile="cxl-test-$(date +%Y-%m-%d--%H%M%S).log"
 
 set +e
 # disable make check here until ndctl re-enables it for libcxl
-#make TESTS=libcxl check > "$logfile" 2>&1
+meson test -C build --suite cxl > "$logfile" 2>&1
 
 # cat logfile > /dev/kmsg doesn't work (-EINVAL)
 dumpfile()
@@ -50,8 +38,8 @@ dumpfile()
 	set -x
 }
 
-dumpfile test/test-suite.log
-echo "======= make-check.log ========" > /dev/kmsg
+dumpfile /root/ndctl/build/meson-logs/testlog.txt
+echo "======= meson-test.log ========" > /dev/kmsg
 dumpfile "$logfile"
 echo "======= Done $0 ========" > /dev/kmsg
 systemctl poweroff
