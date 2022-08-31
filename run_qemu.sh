@@ -51,7 +51,7 @@ cxl_t3_size="256M"
 cxl_label_size="1K"
 
 num_build_cpus="$(($(getconf _NPROCESSORS_ONLN) + 1))"
-rsync_opts=("--delete" "--exclude=.git/" "-L" "-r")
+rsync_opts=("--delete" "--exclude=.git/" "--exclude=build/" "-L" "-r")
 
 qemu_dir=$(dirname "$(dirname "$qemu")")
 if [[ $qemu_dir != . ]]; then
