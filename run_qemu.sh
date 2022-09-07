@@ -579,9 +579,11 @@ __update_existing_rootfs()
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
 	fi
 
-	ndctl_dst="$inst_prefix/root/ndctl"
-	if [ -d "$ndctl" ] && [ -d "$ndctl_dst" ]; then
-		rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
+	if [[ $_arg_ndctl_build == "on" ]]; then
+		ndctl_dst="$inst_prefix/root/ndctl"
+		if [ -d "$ndctl" ] && [ -d "$ndctl_dst" ]; then
+			rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
+		fi
 	fi
 
 	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
@@ -674,8 +676,10 @@ make_rootfs()
 	if [ -d ~/git/extra-scripts ]; then
 		rsync "${rsync_opts[@]}" ~/git/extra-scripts/bin/* mkosi.extra/root/bin/
 	fi
-	if [ -d "$ndctl" ]; then
-		rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
+	if [[ $_arg_ndctl_build == "on" ]]; then
+		if [ -d "$ndctl" ]; then
+			rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
+		fi
 	fi
 	if [ -f /etc/localtime ]; then
 		mkdir -p mkosi.extra/etc/
@@ -700,7 +704,9 @@ make_rootfs()
 	setup_depmod "mkosi.extra"
 	setup_autorun "mkosi.extra"
 
-	prepare_ndctl_build
+	if [[ $_arg_ndctl_build == "on" ]]; then
+		prepare_ndctl_build
+	fi
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
 	if (( mkosi_ver >= 9 )); then
 		mkosi_opts+=("--autologin")
