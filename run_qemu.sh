@@ -326,7 +326,7 @@ __build_kernel()
 		make olddefconfig
 		make prepare
 	fi
-	kver=$(make kernelrelease)
+	kver=$(make -s kernelrelease)
 	test -n "$kver"
 	make -j"$num_build_cpus"
 	if [[ $_arg_nfit_test == "on" ]]; then
