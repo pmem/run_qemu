@@ -244,11 +244,11 @@ process_options_logic()
 		dispmode="-nographic"
 	fi
 
+	set_topo_presets "$_arg_preset"
 	num_nvmes="$_arg_nvmes"
 	num_nodes="$_arg_nodes"
 	num_mems="$_arg_mems"
 	num_pmems="$_arg_pmems"
-	set_topo_presets "$_arg_preset"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		if (( _arg_quiet < 3 )); then
