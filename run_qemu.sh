@@ -244,11 +244,11 @@ process_options_logic()
 		dispmode="-nographic"
 	fi
 
+	set_topo_presets "$_arg_preset"
 	num_nvmes="$_arg_nvmes"
 	num_nodes="$_arg_nodes"
 	num_mems="$_arg_mems"
 	num_pmems="$_arg_pmems"
-	set_topo_presets "$_arg_preset"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		if (( _arg_quiet < 3 )); then
@@ -326,7 +326,7 @@ __build_kernel()
 		make olddefconfig
 		make prepare
 	fi
-	kver=$(make kernelrelease)
+	kver=$(make -s kernelrelease)
 	test -n "$kver"
 	make -j"$num_build_cpus"
 	if [[ $_arg_nfit_test == "on" ]]; then
@@ -485,8 +485,12 @@ update_rootfs_boot_kernel()
 	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/EFI/Linux/linux-$kver.efi"
 
 	defconf="$builddir/mnt/loader/loader.conf"
-	sudo sed -i -e 's/^#.*timeout.*/timeout 4/' "$defconf"
-	sudo sed -i -e '/default.*/d' "$defconf"
+	if [ -f "$defconf" ]; then
+		sudo sed -i -e 's/^#.*timeout.*/timeout 4/' "$defconf"
+		sudo sed -i -e '/default.*/d' "$defconf"
+	else
+		echo "timeout 4" | sudo tee "$defconf"
+	fi
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
 	umount_rootfs 1
 
