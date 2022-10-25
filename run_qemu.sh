@@ -220,9 +220,6 @@ process_options_logic()
 			_arg_timeout="20"
 		fi
 	fi
-	if [[ $_arg_cxl_debug == "on" ]]; then
-		_arg_cxl="on"
-	fi
 	if [[ $_arg_cxl_legacy == "on" ]] || [[ $_arg_cxl == "on" ]]; then
 		_arg_git_qemu="on"
 	fi
