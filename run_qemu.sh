@@ -15,6 +15,7 @@ pmem_final_size="$((pmem_size + pmem_label_size))"
 : "${distro:=fedora}"
 : "${rev:=36}"
 : "${ndctl:=$(readlink -f ~/git/ndctl)}"
+selftests_home=root/built-selftests
 mkosi_bin="mkosi"
 mkosi_opts=("-i" "-f")
 
@@ -341,6 +342,12 @@ __build_kernel()
 		make -j"$num_build_cpus" M="$test_path"
 		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
 	fi
+
+	if [[ $_arg_kern_selftests == "on" ]]; then
+		selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
+		make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+	fi
+
 	if (( _arg_quiet >= 1 )); then
 		install_build_initrd > /dev/null 2>&1
 	else
@@ -588,6 +595,13 @@ __update_existing_rootfs()
 		if [ -d "$ndctl" ] && [ -d "$ndctl_dst" ]; then
 			rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
 		fi
+	fi
+
+	selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
+	if [[ $_arg_kern_selftests == "on" ]]; then
+		sudo make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+	else
+		sudo rm -rf "$selftests_dir"
 	fi
 
 	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
