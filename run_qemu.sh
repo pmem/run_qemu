@@ -471,6 +471,9 @@ update_rootfs_boot_kernel()
 		"cxl_pmem.dyndbg=+fplm"
 		"cxl_port.dyndbg=+fplm"
 		"cxl_region.dyndbg=+fplm"
+		"cxl_test.dyndbg=+fplm"
+		"cxl_mock.dyndbg=+fplm"
+		"cxl_mock_mem.dyndbg=+fplm"
 		"libnvdimm.dyndbg=+fplm"
 		"nfit.dyndbg=+fplm"
 		"nfit_test.dyndbg=+fplm"
@@ -886,6 +889,7 @@ build_kernel_cmdline()
 			"cxl_region.dyndbg=+fplm"
 			"cxl_test.dyndbg=+fplm"
 			"cxl_mock.dyndbg=+fplm"
+			"cxl_mock_mem.dyndbg=+fplm"
 		)
 	fi
 	if [[ $_arg_nfit_debug == "on" ]]; then
