@@ -7,6 +7,8 @@
 rootpw="root"
 rootfssize="10G"
 nvme_size="1G"
+efi_mem_size="2"   #in GiB
+legacy_pmem_size="2"   #in GiB
 pmem_size="16384"  #in MiB
 pmem_label_size=2  #in MiB
 pmem_final_size="$((pmem_size + pmem_label_size))"
@@ -139,41 +141,57 @@ set_topo_presets()
 		num_nodes=1
 		num_mems=0
 		num_pmems=1
+		num_efi_mems=0
+		num_legacy_pmems=0
 		;;
 	2S0|small0)
 		num_nodes=2
 		num_mems=0
 		num_pmems=2
+		num_efi_mems=0
+		num_legacy_pmems=0
 		;;
 	2S|small)
 		num_nodes=2
 		num_mems=2
 		num_pmems=2
+		num_efi_mems=1
+		num_legacy_pmems=1
 		;;
 	2S4|med*)
 		num_nodes=2
 		num_mems=4
 		num_pmems=4
+		num_efi_mems=1
+		num_legacy_pmems=2
 		;;
 	4S|large)
 		num_nodes=4
 		num_mems=4
 		num_pmems=4
+		num_efi_mems=2
+		num_legacy_pmems=2
 		;;
 	8S|huge)
 		num_nodes=8
 		num_mems=8
 		num_pmems=8
+		num_efi_mems=2
+		num_legacy_pmems=2
 		;;
 	16S|insane)
 		num_nodes=16
 		num_mems=0
 		num_pmems=16
+		num_efi_mems=2
+		num_legacy_pmems=2
 		;;
 	16Sb|broken)
 		num_nodes=16
 		num_mems=0
 		num_pmems=32
+		num_efi_mems=2
+		num_legacy_pmems=2
 		;;
 	*)
 		printf "error: invalid preset: %s\n" "$1"
@@ -247,6 +265,8 @@ process_options_logic()
 	num_nodes="$_arg_nodes"
 	num_mems="$_arg_mems"
 	num_pmems="$_arg_pmems"
+	num_efi_mems="$_arg_efi_mems"
+	num_legacy_pmems="$_arg_legacy_pmems"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		if (( _arg_quiet < 3 )); then
@@ -908,6 +928,36 @@ build_kernel_cmdline()
 			"memmap=3G!6G,1G!9G"
 			"efi_fake_mem=2G@10G:0x40000"
 		)
+	fi
+
+	tot_mem="$(((_arg_mem_size / 1024) * (num_mems + num_nodes)))"  # in GiB
+	if (( num_legacy_pmems > 0 )); then
+		reserve_efi="$((num_efi_mems * efi_mem_size))"  # in GiB
+		reserve_pmem="$((num_legacy_pmems * legacy_pmem_size))"  # in GiB
+		start="$((tot_mem - reserve_efi - reserve_pmem))"  #in GiB
+		declare -a legacy_pmems
+		cur="$start"
+		for (( i = 0; i < num_legacy_pmems; i++ )); do
+			cur=$((cur + (i * legacy_pmem_size)))
+			legacy_pmems[$i]="${legacy_pmem_size}G!${cur}G"
+		done
+		pmems_str="$(printf "%s," "${legacy_pmems[@]}")"
+		pmems_str="${pmems_str%,}"
+		kcmd+=( "memmap=$pmems_str" )
+	fi
+
+	if (( num_efi_mems > 0 )); then
+		reserve="$((num_efi_mems * efi_mem_size))"  # in GiB
+		start="$((tot_mem - reserve))"  #in GiB
+		declare -a efi_mems
+		cur="$start"
+		for (( i = 0; i < num_efi_mems; i++ )); do
+			cur=$((cur + (i * efi_mem_size)))
+			efi_mems[$i]="${efi_mem_size}G@${cur}G:0x40000"
+		done
+		efi_mems_str="$(printf "%s," "${efi_mems[@]}")"
+		efi_mems_str="${efi_mems_str%,}"
+		kcmd+=( "efi_fake_mem=$efi_mems_str" )
 	fi
 
 	# process kcmd replacement

@@ -10,6 +10,8 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_SINGLE([nodes], , [Number of nodes (cpu + memory nodes)], [2])
 # ARG_OPTIONAL_SINGLE([mems], , [Number of memory-only nodes], [2])
 # ARG_OPTIONAL_SINGLE([pmems], , [Number of persistent memory dimms (each on a new node)], [2])
+# ARG_OPTIONAL_SINGLE([efi-mems], , [add efi_fake_mem reservations with the EFI_MEMORY_SP attribute], [1])
+# ARG_OPTIONAL_SINGLE([legacy-pmems], , [add e820 memmap=nn!ss reservations to emulate legacy pmem devices], [1])
 # ARG_OPTIONAL_SINGLE([preset], [p], [Select a preset config of the following:\n 1S  (or tiny)  :  1 nodes,  0 mems,  1 pmems\n 2S0 (or small0):  2 nodes,  0 mems,  2 pmems\n 2S  (or small) :  2 nodes,  2 mems,  2 pmems\n 2S4 (or med)   :  2 nodes,  4 mems,  4 pmems\n 4S  (or large) :  4 nodes,  4 mems,  4 pmems\n 8S  (or huge)  :  8 nodes,  8 mems,  8 pmems\n 16S (or insane): 16 nodes,  0 mems, 16 pmems\n 16Sb(or broken): 16 nodes,  0 mems, 32 pmems\n], [small])
 # ARG_OPTIONAL_SINGLE([mem-size], , [size of each system-memory device (in MiB)], [2048])
 # ARG_OPTIONAL_SINGLE([kver], , [Attempt to start a specific kver (only respected with --rebuild=none)], )
