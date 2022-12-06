@@ -500,6 +500,7 @@ update_rootfs_boot_kernel()
 		"nd_pmem.dyndbg=+fplm"
 		"nd_btt.dyndbg=+fplm"
 		"dax.dyndbg=+fplm"
+		"dax_hmem.dyndbg=+fplm"
 		"nfit_test_iomap.dyndbg=+fplm"
 	)
 	sudo tee "$conffile" > /dev/null <<- EOF
@@ -920,6 +921,7 @@ build_kernel_cmdline()
 			"nd_pmem.dyndbg=+fplm"
 			"nd_btt.dyndbg=+fplm"
 			"dax.dyndbg=+fplm"
+			"dax_hmem.dyndbg=+fplm"
 			"nfit_test_iomap.dyndbg=+fplm"
 		)
 	fi
