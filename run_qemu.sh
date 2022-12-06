@@ -984,13 +984,13 @@ get_ovmf_binaries()
 		rm -f OVMF_*.fd
 	fi
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
-		wget -O edk2-ovmf.tar.zst https://www.archlinux.org/packages/extra/any/edk2-ovmf/download/
-	else
-		# Binaries are already there.
-		return 0
+		if [ ! -f /usr/share/edk2/ovmf/OVMF_CODE.fd ]; then
+			echo "OVMF binaries not found, please install 'edk2-ovmf' or similar"
+			exit 1
+		fi
+		cp /usr/share/edk2/ovmf/OVMF_CODE.fd .
+		cp /usr/share/edk2/ovmf/OVMF_VARS.fd .
 	fi
-
-	tar -I zstd --strip-components=4 -xf edk2-ovmf.tar.zst usr/share/edk2-ovmf/x64/OVMF_CODE.fd usr/share/edk2-ovmf/x64/OVMF_VARS.fd
 }
 
 setup_nvme()
