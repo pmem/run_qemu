@@ -238,7 +238,7 @@ process_options_logic()
 			_arg_timeout="20"
 		fi
 	fi
-	if [[ $_arg_cxl_legacy == "on" ]] || [[ $_arg_cxl == "on" ]]; then
+	if [[ $_arg_cxl == "on" ]]; then
 		_arg_git_qemu="on"
 	fi
 	if [[ $_arg_git_qemu == "on" ]]; then
@@ -1105,29 +1105,7 @@ prepare_qcmd()
 	qcmd+=("-device" "e1000,netdev=net0,mac=$mac_addr")
 	qcmd+=("-netdev" "user,id=net0,hostfwd=tcp::$hostport-:22")
 
-	if [[ $_arg_cxl_legacy == "on" ]]; then
-		# Create a single host bridge with a single root port, and a
-		# Type3 device (of 256M PMEM). The host bridge will be 52:0.0
-		# for no particular reason.
-		#
-		# The memory window is declared first and used throughout CXL
-		# component creation. The PA of the window is 0x4c0000000, for
-		# no particular reason.
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxl-window1,size=$cxl_backend_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-label1,share=on,mem-path=cxl-label1,size=$cxl_label_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-label2,share=on,mem-path=cxl-label2,size=$cxl_label_size")
-
-		pxb_cxl_subcmd="pxb-cxl"
-		pxb_cxl_subcmd+=",id=cxl.0,bus=pcie.0,bus_nr=52,uid=0"
-		pxb_cxl_subcmd+=",len-window-base=1,window-base[0]=$cxl_addr"
-		pxb_cxl_subcmd+=",memdev[0]=cxl-mem1"
-		qcmd+=("-device" "$pxb_cxl_subcmd")
-
-		qcmd+=("-device" "cxl-rp,id=rp0,bus=cxl.0,addr=0.0,chassis=0,slot=0,port=0")
-		qcmd+=("-device" "cxl-rp,id=rp1,bus=cxl.0,addr=1.0,chassis=0,slot=1,port=1")
-		qcmd+=("-device" "cxl-type3,bus=rp0,memdev=cxl-mem1,id=cxl-pmem0,size=$cxl_t3_size,lsa=cxl-label1")
-		qcmd+=("-device" "cxl-type3,bus=rp1,memdev=cxl-mem1,id=cxl-pmem1,size=$cxl_t3_size,lsa=cxl-label2")
-	elif [[ $_arg_cxl == "on" ]]; then
+	if [[ $_arg_cxl == "on" ]]; then
 		# Create objects for devices.
 		qcmd+=("-object" "memory-backend-file,id=cxl-mem0,share=on,mem-path=cxltest0.raw,size=$cxl_t3_size")
 		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxltest1.raw,size=$cxl_t3_size")
