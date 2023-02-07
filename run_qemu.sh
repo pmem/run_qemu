@@ -1008,6 +1008,51 @@ setup_nvme()
 	done
 }
 
+setup_cxl()
+{
+	# Create objects for devices.
+	qcmd+=("-object" "memory-backend-file,id=cxl-mem0,share=on,mem-path=cxltest0.raw,size=$cxl_t3_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxltest1.raw,size=$cxl_t3_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-mem2,share=on,mem-path=cxltest2.raw,size=$cxl_t3_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-mem3,share=on,mem-path=cxltest3.raw,size=$cxl_t3_size")
+
+	# Each device needs its own LSA
+	qcmd+=("-object" "memory-backend-file,id=cxl-lsa0,share=on,mem-path=lsa0.raw,size=$cxl_label_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-lsa1,share=on,mem-path=lsa1.raw,size=$cxl_label_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-lsa2,share=on,mem-path=lsa2.raw,size=$cxl_label_size")
+	qcmd+=("-object" "memory-backend-file,id=cxl-lsa3,share=on,mem-path=lsa3.raw,size=$cxl_label_size")
+
+	# Create the "host bridges"
+	qcmd+=("-device" "pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53")
+	qcmd+=("-device" "pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191")
+
+	# Create the root ports
+	qcmd+=("-device" "cxl-rp,id=hb0rp0,bus=cxl.0,chassis=0,slot=0,port=0")
+	qcmd+=("-device" "cxl-rp,id=hb0rp1,bus=cxl.0,chassis=0,slot=1,port=1")
+	qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0")
+	qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
+
+	# Create the devices
+	qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0")
+	qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1")
+	qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
+	qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
+
+	# Finally, the CFMWS entries
+	declare -a cfmws_params
+	while read -r param; do cfmws_params+=("$param"); done <<- EOF
+		cxl-fmw.0.targets.0=cxl.0,
+		cxl-fmw.0.size=4G,
+		cxl-fmw.0.interleave-granularity=8k,
+
+		cxl-fmw.1.targets.0=cxl.0,
+		cxl-fmw.1.targets.1=cxl.1,
+		cxl-fmw.1.size=4G,
+		cxl-fmw.1.interleave-granularity=8k
+	EOF
+	qcmd+=("-M" "$(printf %s "${cfmws_params[@]}")")
+}
+
 prepare_qcmd()
 {
 	# this step may expect files to be present at the toplevel, so run
@@ -1103,47 +1148,7 @@ prepare_qcmd()
 	qcmd+=("-netdev" "user,id=net0,hostfwd=tcp::$hostport-:22")
 
 	if [[ $_arg_cxl == "on" ]]; then
-		# Create objects for devices.
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem0,share=on,mem-path=cxltest0.raw,size=$cxl_t3_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem1,share=on,mem-path=cxltest1.raw,size=$cxl_t3_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem2,share=on,mem-path=cxltest2.raw,size=$cxl_t3_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-mem3,share=on,mem-path=cxltest3.raw,size=$cxl_t3_size")
-
-		# Each device needs its own LSA
-		qcmd+=("-object" "memory-backend-file,id=cxl-lsa0,share=on,mem-path=lsa0.raw,size=$cxl_label_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-lsa1,share=on,mem-path=lsa1.raw,size=$cxl_label_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-lsa2,share=on,mem-path=lsa2.raw,size=$cxl_label_size")
-		qcmd+=("-object" "memory-backend-file,id=cxl-lsa3,share=on,mem-path=lsa3.raw,size=$cxl_label_size")
-
-		# Create the "host bridges"
-		qcmd+=("-device" "pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53")
-		qcmd+=("-device" "pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191")
-
-		# Create the root ports
-		qcmd+=("-device" "cxl-rp,id=hb0rp0,bus=cxl.0,chassis=0,slot=0,port=0")
-		qcmd+=("-device" "cxl-rp,id=hb0rp1,bus=cxl.0,chassis=0,slot=1,port=1")
-		qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0")
-		qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
-
-		# Create the devices
-		qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0")
-		qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1")
-		qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
-		qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
-
-		# Finally, the CFMWS entries
-		declare -a cfmws_params
-		while read -r param; do cfmws_params+=("$param"); done <<- EOF
-			cxl-fmw.0.targets.0=cxl.0,
-			cxl-fmw.0.size=4G,
-			cxl-fmw.0.interleave-granularity=8k,
-
-			cxl-fmw.1.targets.0=cxl.0,
-			cxl-fmw.1.targets.1=cxl.1,
-			cxl-fmw.1.size=4G,
-			cxl-fmw.1.interleave-granularity=8k
-		EOF
-		qcmd+=("-M" "$(printf %s "${cfmws_params[@]}")")
+		setup_cxl
 	fi
 
 	if [[ $_arg_qmp == "on" ]]; then
