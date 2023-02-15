@@ -1039,20 +1039,25 @@ setup_cxl()
 	qcmd+=("-device" "cxl-rp,id=hb0rp3,bus=cxl.0,chassis=0,slot=3,port=3")
 
 	qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=4,port=0")
-	qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=5,port=1")
-	qcmd+=("-device" "cxl-rp,id=hb1rp2,bus=cxl.1,chassis=0,slot=6,port=2")
-	qcmd+=("-device" "cxl-rp,id=hb1rp3,bus=cxl.1,chassis=0,slot=7,port=3")
+
+	# switch under hb1rp0, with 4 downstream ports
+	qcmd+=("-device" "cxl-upstream,port=33,bus=hb1rp0,id=us0,multifunction=on,addr=0.0,sn=12345678")
+	qcmd+=("-device" "cxl-switch-mailbox-cci,bus=hb1rp0,addr=0.1")
+	qcmd+=("-device" "cxl-downstream,port=0,bus=us0,id=swport0,chassis=0,slot=5")
+	qcmd+=("-device" "cxl-downstream,port=1,bus=us0,id=swport1,chassis=0,slot=6")
+	qcmd+=("-device" "cxl-downstream,port=2,bus=us0,id=swport2,chassis=0,slot=7")
+	qcmd+=("-device" "cxl-downstream,port=3,bus=us0,id=swport3,chassis=0,slot=8")
 
 	# Create the devices
 	qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0")
 	qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
-
 	qcmd+=("-device" "cxl-type3,bus=hb0rp2,volatile-memdev=cxl-mem4,id=cxl-dev4")
 	qcmd+=("-device" "cxl-type3,bus=hb0rp3,volatile-memdev=cxl-mem5,id=cxl-dev5")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp2,volatile-memdev=cxl-mem6,id=cxl-dev6")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp3,volatile-memdev=cxl-mem7,id=cxl-dev7")
+
+	qcmd+=("-device" "cxl-type3,bus=swport0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
+	qcmd+=("-device" "cxl-type3,bus=swport1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
+	qcmd+=("-device" "cxl-type3,bus=swport2,volatile-memdev=cxl-mem6,id=cxl-dev6")
+	qcmd+=("-device" "cxl-type3,bus=swport3,volatile-memdev=cxl-mem7,id=cxl-dev7")
 
 	# Finally, the CFMWS entries
 	declare -a cfmws_params
