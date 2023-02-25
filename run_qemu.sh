@@ -92,6 +92,13 @@ cxl_results_script="$script_dir/scripts/rq_cxl_results.sh"
 nfit_test_script="$script_dir/scripts/rq_nfit_tests.sh"
 nfit_results_script="$script_dir/scripts/rq_nfit_results.sh"
 
+# distro specific variables
+distro_vars="${script_dir}/${distro}_vars.sh"
+# shellcheck source=fedora_vars.sh
+# shellcheck source=arch_vars.sh
+# shellcheck source=ubuntu_vars.sh
+[ -f "$distro_vars" ] && source "$distro_vars"
+
 pushd "$_arg_working_dir" > /dev/null || fail "couldn't cd to $_arg_working_dir"
 
 kill_guest()
@@ -982,13 +989,17 @@ get_ovmf_binaries()
 	if [[ $_arg_forget_disks == "on" ]]; then
 		rm -f OVMF_*.fd
 	fi
+	if [[ ! $ovmf_path ]]; then
+		echo "Unable to determine OVMF path for $distro"
+		exit 1
+	fi
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
-		if [ ! -f /usr/share/edk2/ovmf/OVMF_CODE.fd ]; then
+		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
 			echo "OVMF binaries not found, please install 'edk2-ovmf' or similar"
 			exit 1
 		fi
-		cp /usr/share/edk2/ovmf/OVMF_CODE.fd .
-		cp /usr/share/edk2/ovmf/OVMF_VARS.fd .
+		cp "$ovmf_path/OVMF_CODE.fd" .
+		cp "$ovmf_path/OVMF_VARS.fd" .
 	fi
 }
 
