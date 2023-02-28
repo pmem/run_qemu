@@ -52,6 +52,7 @@ cxl_addr="0x4c00000000"
 cxl_backend_size="512M"
 cxl_t3_size="256M"
 cxl_label_size="1K"
+cxl_hbs=2
 
 num_build_cpus="$(($(getconf _NPROCESSORS_ONLN) + 1))"
 rsync_opts=("--delete" "--exclude=.git/" "--exclude=build/" "-L" "-r")
@@ -813,6 +814,20 @@ qemu_setup_hmat()
 			qcmd+=("-numa" "hmat-lb,initiator=$i,target=$pmem_node,$hmat_lb_bw=${bw}M")
 		done
 
+		for (( j = 0; j < cxl_hbs; j++ )); do
+			genport_node="$((num_nodes + num_mems + num_pmems + j))"
+			this_initiator="$((j % num_nodes))"
+			if [[ $this_initiator == "$i" ]]; then
+				lat=$far_mem_lat
+				bw=$far_mem_bw
+			else
+				lat=$cross_mem_lat
+				bw=$cross_mem_bw
+			fi
+			qcmd+=("-numa" "hmat-lb,initiator=$i,target=$genport_node,$hmat_lb_lat=${lat}")
+			qcmd+=("-numa" "hmat-lb,initiator=$i,target=$genport_node,$hmat_lb_bw=${bw}M")
+		done
+
 		# some canned hmat cache info
 		cache_vars="size=10K,level=1,associativity=direct,policy=write-back,line=64"
 		qcmd+=("-numa" "hmat-cache,node-id=$i,$cache_vars")
@@ -822,7 +837,7 @@ qemu_setup_hmat()
 
 qemu_setup_node_distances()
 {
-	total_nodes=$((num_nodes + num_mems + num_pmems))
+	total_nodes=$((num_nodes + num_mems + num_pmems + cxl_hbs))
 
 	# main loop for all the nodes (cpu, mem-only, and pmem).
 	for (( i = 0; i < total_nodes; i++ )); do
@@ -869,6 +884,22 @@ qemu_setup_node_distances()
 				dist=$local_mem_dist
 			fi
 			qcmd+=("-numa" "dist,src=$i,dst=$pmem_node,val=$dist")
+		done
+
+		for (( j = 0; j < cxl_hbs; j++ )); do
+			genport_node="$((num_nodes + num_mems + num_pmems + j))"
+			this_initiator="$((j % num_nodes))"
+
+			(( genport_node < i)) && continue
+			if [[ $this_initiator == "$i" ]]; then
+				dist=$far_mem_dist
+			else
+				dist=$cross_mem_dist
+			fi
+			if [[ $i == "$genport_node" ]]; then
+				dist=$local_mem_dist
+			fi
+			qcmd+=("-numa" "dist,src=$i,dst=$genport_node,val=$dist")
 		done
 	done
 }
@@ -1029,6 +1060,7 @@ setup_cxl()
 	qcmd+=("-object" "memory-backend-file,id=cxl-lsa3,share=on,mem-path=lsa3.raw,size=$cxl_label_size")
 
 	# Create the "host bridges"
+	# cxl_hbs=2
 	qcmd+=("-device" "pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53")
 	qcmd+=("-device" "pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191")
 
@@ -1194,6 +1226,7 @@ prepare_qcmd()
 		qcmd+=("-object" "memory-backend-ram,id=mem${i},size=${_arg_mem_size}M")
 		qcmd+=("-numa" "node,nodeid=${i},memdev=mem${i},$hmat_append")
 		qcmd+=("-numa" "cpu,node-id=${i},socket-id=${i}")
+		echo "Add cpu+mem node $i"
 	done
 
 	# memory only nodes (i.e. the --mems option)
@@ -1203,6 +1236,7 @@ prepare_qcmd()
 		[[ $_arg_hmat == "on" ]] && hmat_append="initiator=$((i % num_nodes))"
 		qcmd+=("-object" "memory-backend-ram,id=mem${mem_node},size=${_arg_mem_size}M")
 		qcmd+=("-numa" "node,nodeid=$mem_node,memdev=mem${mem_node},$hmat_append")
+		echo "Add mem node $mem_node"
 	done
 
 	# pmem nodes (i.e. the --pmems option)
@@ -1219,6 +1253,16 @@ prepare_qcmd()
 		qcmd+=("-numa" "node,nodeid=$pmem_node,$hmat_append")
 		qcmd+=("-object" "$pmem_obj,size=${pmem_size}M,align=1G")
 		qcmd+=("-device" "$pmem_dev,node=$pmem_node")
+		echo "Add pmem node $pmem_node"
+	done
+
+	# gen ports
+	for (( i = 0; i < cxl_hbs; i++ )); do
+		genport_node="$((num_nodes + num_mems + num_pmems + i))"
+		[[ $_arg_hmat == "on" ]] && hmat_append="initiator=$((i % num_nodes))"
+		qcmd+=("-object" "genport,id=genport${i}")
+		qcmd+=("-numa" "node,genport=genport${i},nodeid=$genport_node,$hmat_append")
+		echo "Add genport node: $genport_node"
 	done
 
 	qemu_setup_node_distances
