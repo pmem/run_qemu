@@ -712,7 +712,9 @@ make_rootfs()
 	# shellcheck source=arch_rootfs.sh
 	[ -f "$rootfs_script" ] && source "$rootfs_script" mkosi.extra/
 
-	cp -Lr ~/.bash* mkosi.extra/root/
+	if [ -f ~/.bashrc ]; then
+		rsync "${rsync_opts[@]}" ~/.bash* mkosi.extra/root/
+	fi
 	if [ -f ~/.vimrc ]; then
 		rsync "${rsync_opts[@]}" ~/.vim* mkosi.extra/root/
 	fi
