@@ -467,6 +467,100 @@ umount_rootfs()
 	sudo losetup -d "$loopdev"
 }
 
+declare -a kcmd
+build_kernel_cmdline()
+{
+	root="$1"
+
+	# standard options
+	kcmd=( 
+		"selinux=0"
+		"audit=0"
+		"console=tty0"
+		"console=ttyS0"
+		"root=$root"
+		"ignore_loglevel"
+		"rw"
+	)
+	if [[ $_arg_cxl_debug == "on" ]]; then
+		kcmd+=( 
+			"cxl_acpi.dyndbg=+fplm"
+			"cxl_pci.dyndbg=+fplm"
+			"cxl_core.dyndbg=+fplm"
+			"cxl_mem.dyndbg=+fplm"
+			"cxl_pmem.dyndbg=+fplm"
+			"cxl_port.dyndbg=+fplm"
+			"cxl_region.dyndbg=+fplm"
+			"cxl_test.dyndbg=+fplm"
+			"cxl_mock.dyndbg=+fplm"
+			"cxl_mock_mem.dyndbg=+fplm"
+		)
+	fi
+	if [[ $_arg_nfit_debug == "on" ]]; then
+		kcmd+=( 
+			"libnvdimm.dyndbg=+fplm"
+			"nfit.dyndbg=+fplm"
+			"nfit_test.dyndbg=+fplm"
+			"nd_pmem.dyndbg=+fplm"
+			"nd_btt.dyndbg=+fplm"
+			"dax.dyndbg=+fplm"
+			"dax_hmem.dyndbg=+fplm"
+			"nfit_test_iomap.dyndbg=+fplm"
+		)
+	fi
+	if [[ $_arg_nfit_test == "on" ]]; then
+		num_efi_mems=0
+		num_legacy_pmems=0
+		kcmd+=( 
+			"memmap=3G!6G,1G!9G"
+			"efi_fake_mem=2G@10G:0x40000"
+		)
+	fi
+
+	tot_mem="$(((_arg_mem_size / 1024) * (num_mems + num_nodes)))"  # in GiB
+	if (( num_legacy_pmems > 0 )); then
+		reserve_efi="$((num_efi_mems * efi_mem_size))"  # in GiB
+		reserve_pmem="$((num_legacy_pmems * legacy_pmem_size))"  # in GiB
+		start="$((tot_mem - reserve_efi - reserve_pmem))"  #in GiB
+		declare -a legacy_pmems
+		cur="$start"
+		for (( i = 0; i < num_legacy_pmems; i++ )); do
+			cur=$((cur + (i * legacy_pmem_size)))
+			legacy_pmems[$i]="${legacy_pmem_size}G!${cur}G"
+		done
+		pmems_str="$(printf "%s," "${legacy_pmems[@]}")"
+		pmems_str="${pmems_str%,}"
+		kcmd+=( "memmap=$pmems_str" )
+	fi
+
+	if (( num_efi_mems > 0 )); then
+		reserve="$((num_efi_mems * efi_mem_size))"  # in GiB
+		start="$((tot_mem - reserve))"  #in GiB
+		declare -a efi_mems
+		cur="$start"
+		for (( i = 0; i < num_efi_mems; i++ )); do
+			cur=$((cur + (i * efi_mem_size)))
+			efi_mems[$i]="${efi_mem_size}G@${cur}G:0x40000"
+		done
+		efi_mems_str="$(printf "%s," "${efi_mems[@]}")"
+		efi_mems_str="${efi_mems_str%,}"
+		kcmd+=( "efi_fake_mem=$efi_mems_str" )
+	fi
+
+	# process kcmd replacement
+	if [[ $_arg_kcmd_replace ]]; then
+		mapfile -t kcmd < <(options_from_file "$_arg_kcmd_replace")
+	fi
+
+	# process kcmd appends
+	if [[ $_arg_kcmd_append ]]; then
+		mapfile -t kcmd_extra < <(options_from_file "$_arg_kcmd_append")
+	fi
+
+	# construct the final array
+	kcmd+=( "${kcmd_extra[@]}" )
+}
+
 update_rootfs_boot_kernel()
 {
 	if [[ ! $kver ]]; then
@@ -480,39 +574,13 @@ update_rootfs_boot_kernel()
 		fail "Unable to determine root partition UUID"
 	fi
 
-	# TODO: consolidate this with build_kernel_cmdline()
-	kopts=( 
-		"root=PARTUUID=$root_partuuid"
-		"selinux=0"
-		"audit=0"
-		"rw"
-		"console=ttyS0"
-		"ignore_loglevel"
-		"cxl_acpi.dyndbg=+fplm"
-		"cxl_pci.dyndbg=+fplm"
-		"cxl_core.dyndbg=+fplm"
-		"cxl_mem.dyndbg=+fplm"
-		"cxl_pmem.dyndbg=+fplm"
-		"cxl_port.dyndbg=+fplm"
-		"cxl_region.dyndbg=+fplm"
-		"cxl_test.dyndbg=+fplm"
-		"cxl_mock.dyndbg=+fplm"
-		"cxl_mock_mem.dyndbg=+fplm"
-		"libnvdimm.dyndbg=+fplm"
-		"nfit.dyndbg=+fplm"
-		"nfit_test.dyndbg=+fplm"
-		"nd_pmem.dyndbg=+fplm"
-		"nd_btt.dyndbg=+fplm"
-		"dax.dyndbg=+fplm"
-		"dax_hmem.dyndbg=+fplm"
-		"nfit_test_iomap.dyndbg=+fplm"
-	)
+	build_kernel_cmdline "PARTUUID=$root_partuuid"
 	sudo tee "$conffile" > /dev/null <<- EOF
 		title run-qemu-$distro ($kver)
 		version $kver
 		source /efi/EFI/Linux/linux-$kver.efi
 		linux EFI/Linux/linux-$kver.efi
-		options ${kopts[*]}
+		options ${kcmd[*]}
 	EOF
 	sudo mkdir -p "$builddir/mnt/run-qemu-kernel/$kver"
 	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/EFI/Linux/linux-$kver.efi"
@@ -893,95 +961,6 @@ options_from_file()
 	awk '!/^#|^$/{ gsub(/^[ \t]+|[ \t]+$/, ""); print }' "$file"
 }
 
-build_kernel_cmdline()
-{
-	# standard options
-	kcmd=( 
-		"selinux=0"
-		"audit=0"
-		"console=tty0"
-		"console=ttyS0"
-		"root=/dev/sda2"
-		"ignore_loglevel"
-		"rw"
-	)
-	if [[ $_arg_cxl_debug == "on" ]]; then
-		kcmd+=( 
-			"cxl_acpi.dyndbg=+fplm"
-			"cxl_pci.dyndbg=+fplm"
-			"cxl_core.dyndbg=+fplm"
-			"cxl_mem.dyndbg=+fplm"
-			"cxl_pmem.dyndbg=+fplm"
-			"cxl_port.dyndbg=+fplm"
-			"cxl_region.dyndbg=+fplm"
-			"cxl_test.dyndbg=+fplm"
-			"cxl_mock.dyndbg=+fplm"
-			"cxl_mock_mem.dyndbg=+fplm"
-		)
-	fi
-	if [[ $_arg_nfit_debug == "on" ]]; then
-		kcmd+=( 
-			"libnvdimm.dyndbg=+fplm"
-			"nfit.dyndbg=+fplm"
-			"nfit_test.dyndbg=+fplm"
-			"nd_pmem.dyndbg=+fplm"
-			"nd_btt.dyndbg=+fplm"
-			"dax.dyndbg=+fplm"
-			"dax_hmem.dyndbg=+fplm"
-			"nfit_test_iomap.dyndbg=+fplm"
-		)
-	fi
-	if [[ $_arg_nfit_test == "on" ]]; then
-		kcmd+=( 
-			"memmap=3G!6G,1G!9G"
-			"efi_fake_mem=2G@10G:0x40000"
-		)
-	fi
-
-	tot_mem="$(((_arg_mem_size / 1024) * (num_mems + num_nodes)))"  # in GiB
-	if (( num_legacy_pmems > 0 )); then
-		reserve_efi="$((num_efi_mems * efi_mem_size))"  # in GiB
-		reserve_pmem="$((num_legacy_pmems * legacy_pmem_size))"  # in GiB
-		start="$((tot_mem - reserve_efi - reserve_pmem))"  #in GiB
-		declare -a legacy_pmems
-		cur="$start"
-		for (( i = 0; i < num_legacy_pmems; i++ )); do
-			cur=$((cur + (i * legacy_pmem_size)))
-			legacy_pmems[$i]="${legacy_pmem_size}G!${cur}G"
-		done
-		pmems_str="$(printf "%s," "${legacy_pmems[@]}")"
-		pmems_str="${pmems_str%,}"
-		kcmd+=( "memmap=$pmems_str" )
-	fi
-
-	if (( num_efi_mems > 0 )); then
-		reserve="$((num_efi_mems * efi_mem_size))"  # in GiB
-		start="$((tot_mem - reserve))"  #in GiB
-		declare -a efi_mems
-		cur="$start"
-		for (( i = 0; i < num_efi_mems; i++ )); do
-			cur=$((cur + (i * efi_mem_size)))
-			efi_mems[$i]="${efi_mem_size}G@${cur}G:0x40000"
-		done
-		efi_mems_str="$(printf "%s," "${efi_mems[@]}")"
-		efi_mems_str="${efi_mems_str%,}"
-		kcmd+=( "efi_fake_mem=$efi_mems_str" )
-	fi
-
-	# process kcmd replacement
-	if [[ $_arg_kcmd_replace ]]; then
-		mapfile -t kcmd < <(options_from_file "$_arg_kcmd_replace")
-	fi
-
-	# process kcmd appends
-	if [[ $_arg_kcmd_append ]]; then
-		mapfile -t kcmd_extra < <(options_from_file "$_arg_kcmd_append")
-	fi
-
-	# construct the final array
-	kcmd+=( "${kcmd_extra[@]}" )
-}
-
 get_ovmf_binaries()
 {
 	if [[ $_arg_legacy_bios == "on" ]]; then
@@ -1070,7 +1049,7 @@ prepare_qcmd()
 {
 	# this step may expect files to be present at the toplevel, so run
 	# it before dropping into the builddir
-	build_kernel_cmdline
+	build_kernel_cmdline "/dev/sda2"
 
 	pushd "$builddir" > /dev/null || exit 1
 
