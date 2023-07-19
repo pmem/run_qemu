@@ -141,10 +141,11 @@ cleanup()
 
 trap cleanup EXIT
 
-set_topo_presets()
+set_topology()
 {
 	case "$1" in
 	1S|tiny)
+		num_nvmes=0
 		num_nodes=1
 		num_mems=0
 		num_pmems=1
@@ -152,6 +153,7 @@ set_topo_presets()
 		num_legacy_pmems=0
 		;;
 	2S0|small0)
+		num_nvmes=0
 		num_nodes=2
 		num_mems=0
 		num_pmems=2
@@ -159,6 +161,7 @@ set_topo_presets()
 		num_legacy_pmems=0
 		;;
 	2S|small)
+		num_nvmes=0
 		num_nodes=2
 		num_mems=2
 		num_pmems=2
@@ -166,6 +169,7 @@ set_topo_presets()
 		num_legacy_pmems=1
 		;;
 	2S4|med*)
+		num_nvmes=0
 		num_nodes=2
 		num_mems=4
 		num_pmems=4
@@ -173,6 +177,7 @@ set_topo_presets()
 		num_legacy_pmems=2
 		;;
 	4S|large)
+		num_nvmes=0
 		num_nodes=4
 		num_mems=4
 		num_pmems=4
@@ -180,6 +185,7 @@ set_topo_presets()
 		num_legacy_pmems=2
 		;;
 	8S|huge)
+		num_nvmes=0
 		num_nodes=8
 		num_mems=8
 		num_pmems=8
@@ -187,6 +193,7 @@ set_topo_presets()
 		num_legacy_pmems=2
 		;;
 	16S|insane)
+		num_nvmes=0
 		num_nodes=16
 		num_mems=0
 		num_pmems=16
@@ -194,6 +201,7 @@ set_topo_presets()
 		num_legacy_pmems=2
 		;;
 	16Sb|broken)
+		num_nvmes=0
 		num_nodes=16
 		num_mems=0
 		num_pmems=32
@@ -205,6 +213,26 @@ set_topo_presets()
 		exit 1
 		;;
 	esac
+
+	# After presets override individuals
+	if [[ "$_arg_nvmes" ]]; then
+		num_nvmes="$_arg_nvmes"
+	fi
+	if [[ "$_arg_nodes" ]]; then
+		num_nodes="$_arg_nodes"
+	fi
+	if [[ "$_arg_mems" ]]; then
+		num_mems="$_arg_mems"
+	fi
+	if [[ "$_arg_pmems" ]]; then
+		num_pmems="$_arg_pmems"
+	fi
+	if [[ "$_arg_efi_mems" ]]; then
+		num_efi_mems="$_arg_efi_mems"
+	fi
+	if [[ "$_arg_legacy_pmems" ]]; then
+		num_legacy_pmems="$_arg_legacy_pmems"
+	fi
 }
 
 process_options_logic()
@@ -231,7 +259,7 @@ process_options_logic()
 	fi
 	if [[ $_arg_nfit_test_run == "on" ]]; then
 		_arg_nfit_test="on"
-		set_topo_presets "med"
+		set_topology "med"
 		if [[ ! $_arg_autorun ]]; then
 			_arg_autorun="$nfit_test_script"
 		fi
@@ -264,19 +292,13 @@ process_options_logic()
 		dispmode="-nographic"
 	fi
 
-	set_topo_presets "$_arg_preset"
-	num_nvmes="$_arg_nvmes"
-	num_nodes="$_arg_nodes"
-	num_mems="$_arg_mems"
-	num_pmems="$_arg_pmems"
-	num_efi_mems="$_arg_efi_mems"
-	num_legacy_pmems="$_arg_legacy_pmems"
+	set_topology "$_arg_preset"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		if (( _arg_quiet < 3 )); then
 			printf "setting preset to 'med' for nfit_test\n"
 		fi
-		set_topo_presets "med"
+		set_topology "med"
 	fi
 	if [[ "$_arg_mirror" ]]; then
 		mkosi_opts+=(-m "$_arg_mirror")
