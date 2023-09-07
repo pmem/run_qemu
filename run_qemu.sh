@@ -503,6 +503,7 @@ build_kernel_cmdline()
 		"root=$root"
 		"ignore_loglevel"
 		"rw"
+		"memory_hotplug.memmap_on_memory=force"
 	)
 	if [[ $_arg_gdb == "on" ]]; then
 		kcmd+=( 
