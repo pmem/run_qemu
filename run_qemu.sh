@@ -504,6 +504,11 @@ build_kernel_cmdline()
 		"ignore_loglevel"
 		"rw"
 	)
+	if [[ $_arg_gdb == "on" ]]; then
+		kcmd+=( 
+			"nokaslr"
+		)
+	fi
 	if [[ $_arg_cxl_debug == "on" ]]; then
 		kcmd+=( 
 			"cxl_acpi.dyndbg=+fplm"
