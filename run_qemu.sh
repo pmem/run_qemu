@@ -391,6 +391,10 @@ __build_kernel()
 		make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
 	fi
 
+	if [[ $_arg_gdb == "on" ]]; then
+		make scripts_gdb
+	fi
+
 	if (( _arg_quiet >= 1 )); then
 		install_build_initrd > /dev/null 2>&1
 	else
