@@ -854,6 +854,8 @@ make_rootfs()
 		prepare_ndctl_build
 	fi
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
+	# only look at the major version
+	mkosi_ver="${mkosi_ver%%.*}"
 	if (( mkosi_ver >= 9 )); then
 		mkosi_opts+=("--autologin")
 	fi
