@@ -82,6 +82,10 @@ The script enables generating a sane QEMU commandline for instantiating a basic 
 - --cxl-hb: Turn q35 into a CXL capable Host bridge. Don't use this option unless you're working on support for this.
 - --cxl-test-run: Attempt to do a sanity test of the kernel and QEMU configuration.
 
+## DAX Usage
+
+- --dax-debug: Add any and all flags for extra debug of dax modules (kernel)
+
 ### Kernel config
 - Make sure to Turn on CXL related options in the kernel's .config:
 ```
