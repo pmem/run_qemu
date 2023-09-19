@@ -28,6 +28,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([cxl-debug], , [Enable 'dyndbg' for CXL modules.], )
 # ARG_OPTIONAL_BOOLEAN([cxl-test], , [Setup an environment for CXL unit tests\n  - include CXL 'extra' modules to mock a CXL hierarchy using the kernel's 'cxl_test' facility], )
 # ARG_OPTIONAL_BOOLEAN([cxl-test-run], , [CXL unit test mode. Implies the following:\n git-qemu\n cxl\n cxl-debug\n cxl-test\n autorun=rq_cxl_tests.sh\n log=/tmp/rq_<instance>.log\n post-script=rq_cxl_results.sh\n timeout=5\n Any of the above can be overridden from the defaults by manually supplying that option\n], )
+# ARG_OPTIONAL_BOOLEAN([dax-debug], , [Enable 'dyndbg' for DAX modules.], )
 # ARG_OPTIONAL_BOOLEAN([debug], [v], [Debug script problems (enables set -x)], )
 # ARG_OPTIONAL_BOOLEAN([ndctl-build], , [Enable ndctl build in root image], [on])
 # ARG_OPTIONAL_BOOLEAN([kern-selftests], , [Enable kernel selftest build in root image (Warning: This option can take a long time and requires many support packages on the host; including some 32 bit)], [off])

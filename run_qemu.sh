@@ -528,6 +528,13 @@ build_kernel_cmdline()
 			"cxl_mock_mem.dyndbg=+fplm"
 		)
 	fi
+	if [[ $_arg_dax_debug == "on" ]]; then
+		kcmd+=(
+			"dax.dyndbg=+fplm"
+			"dax_cxl.dyndbg=+fplm"
+			"device_dax.dyndbg=+fplm"
+		)
+	fi
 	if [[ $_arg_nfit_debug == "on" ]]; then
 		kcmd+=( 
 			"libnvdimm.dyndbg=+fplm"
