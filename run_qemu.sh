@@ -470,6 +470,12 @@ mount_rootfs()
 	mkdir -p "$mp"
 	sudo losetup -Pf "$_arg_rootfs"
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	num_loopdev="$(wc -l <<< "$loopdev")"
+	if (( num_loopdev != 1 )); then
+		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
+		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
+		exit 1
+	fi
 	looppart="${loopdev}p${partnum}"
 	test -b "$loopdev"
 	sleep 1
@@ -484,6 +490,12 @@ umount_rootfs()
 	mp="mnt"
 
 	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	num_loopdev="$(wc -l <<< "$loopdev")"
+	if (( num_loopdev != 1 )); then
+		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
+		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
+		exit 1
+	fi
 	looppart="${loopdev}p${partnum}"
 	test -b "$loopdev"
 	sync
