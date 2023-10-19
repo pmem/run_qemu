@@ -1333,6 +1333,9 @@ main()
 		wipe|clean)
 			test -d "$builddir" && sudo rm -rf $builddir/*
 			;&  # fall through
+		imgcache)
+			rm -f "${builddir}/${_arg_rootfs}"*
+			;&  # fall through
 		img)
 			build_kernel
 			make_rootfs
