@@ -1331,7 +1331,7 @@ main()
 			update_rootfs_boot_kernel
 			;;
 		wipe|clean)
-			test -d "$builddir" && sudo rm -rf $builddir/*
+			test -d "$builddir" && sudo rm -rf "${builddir:?}"/*
 			;&  # fall through
 		imgcache)
 			rm -f "${builddir}/${_arg_rootfs}"*
