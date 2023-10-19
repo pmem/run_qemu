@@ -807,6 +807,17 @@ prepare_ndctl_build()
 	chmod +x mkosi.postinst
 }
 
+setup_gcp_tweaks()
+{
+	mkdir -p mkosi.extra/etc/ssh/sshd_config.d/
+	cat <<- EOF >  mkosi.extra/etc/ssh/sshd_config.d/90-gcp.conf
+		PasswordAuthentication no
+		PermitEmptyPasswords no
+		PermitRootLogin prohibit-password
+	EOF
+	chmod go-rw mkosi.extra/etc/ssh/sshd_config.d/90-gcp.conf
+}
+
 make_rootfs()
 {
 	pushd "$builddir" > /dev/null || exit 1
@@ -849,6 +860,10 @@ make_rootfs()
 	if [ -f /etc/localtime ]; then
 		mkdir -p mkosi.extra/etc/
 		cp -P /etc/localtime mkosi.extra/etc/
+	fi
+
+	if [[ $_arg_gcp == "on" ]]; then
+		setup_gcp_tweaks
 	fi
 
 	# enable ssh

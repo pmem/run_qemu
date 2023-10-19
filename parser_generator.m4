@@ -48,6 +48,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([forget-disks], , [Force re-creation of disk images for attached hardware\n (such as nvme disks, pmem DIMMs, OVMF binaries, etc.)], )
 # ARG_OPTIONAL_BOOLEAN([run], , [actually launch qemu], [on])
 # ARG_OPTIONAL_BOOLEAN([direct-kernel], , [Boot the rootfs image directly by supplying a kernel to qemu using '-kernel'], [on])
+# ARG_OPTIONAL_BOOLEAN([gcp], , [Turn on GCP specific tweaks on the base image], [off])
 # ARG_POSITIONAL_DOUBLEDASH()
 # ARG_POSITIONAL_SINGLE([working_dir], [The Linux kernel tree to operate in.\n Switch to this directory before doing anything], [.])
 # ARGBASH_SET_DELIM([ =])
