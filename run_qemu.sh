@@ -20,6 +20,7 @@ pmem_final_size="$((pmem_size + pmem_label_size))"
 selftests_home=root/built-selftests
 mkosi_bin="mkosi"
 mkosi_opts=("-i" "-f")
+console="ttyS0"
 
 # some canned hmat defaults - make configurable as/when needed
 # terminology:
@@ -326,6 +327,12 @@ process_options_logic()
 	if [[ $_arg_log ]]; then
 		_arg_log=$(realpath "$_arg_log")
 	fi
+	if [[ $_arg_gcp == "on" ]]; then
+		# GCP wants 1GiB aligned images.
+		# 10G - ~256M (ESP) to make the resulting image exactly 10GiB
+		rootfssize=10468941824
+		console="ttyS0,38400n8d"
+	fi
 }
 
 install_build_initrd()
@@ -515,7 +522,7 @@ build_kernel_cmdline()
 		"selinux=0"
 		"audit=0"
 		"console=tty0"
-		"console=ttyS0"
+		"console=$console"
 		"root=$root"
 		"ignore_loglevel"
 		"rw"
