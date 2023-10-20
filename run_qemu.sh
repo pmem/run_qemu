@@ -339,6 +339,7 @@ process_options_logic()
 		# GCP wants 1GiB aligned images.
 		# 10G - ~256M (ESP) to make the resulting image exactly 10GiB
 		rootfssize=10468941824
+		rootpw="$(openssl rand -base64 12)"
 		console="ttyS0,38400n8d"
 		set_topology "gcp"
 	fi
@@ -827,6 +828,8 @@ setup_gcp_tweaks()
 {
 	mkdir -p mkosi.extra/etc/ssh/sshd_config.d/
 	cat <<- EOF >  mkosi.extra/etc/ssh/sshd_config.d/90-gcp.conf
+		ChallengeResponseAuthentication no
+		UsePAM no
 		PasswordAuthentication no
 		PermitEmptyPasswords no
 		PermitRootLogin prohibit-password
@@ -906,7 +909,7 @@ make_rootfs()
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
 	# only look at the major version
 	mkosi_ver="${mkosi_ver%%.*}"
-	if (( mkosi_ver >= 9 )); then
+	if (( mkosi_ver >= 9 )) && [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
 	fi
 	mkosi_opts+=("build")
