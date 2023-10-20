@@ -209,6 +209,14 @@ set_topology()
 		num_efi_mems=2
 		num_legacy_pmems=2
 		;;
+	gcp)
+		num_nvmes=0
+		num_nodes=1
+		num_mems=0
+		num_pmems=0
+		num_efi_mems=0
+		num_legacy_pmems=0
+		;;
 	*)
 		printf "error: invalid preset: %s\n" "$1"
 		exit 1
@@ -332,6 +340,7 @@ process_options_logic()
 		# 10G - ~256M (ESP) to make the resulting image exactly 10GiB
 		rootfssize=10468941824
 		console="ttyS0,38400n8d"
+		set_topology "gcp"
 	fi
 }
 
