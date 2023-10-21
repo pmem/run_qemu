@@ -827,14 +827,16 @@ prepare_ndctl_build()
 setup_gcp_tweaks()
 {
 	mkdir -p mkosi.extra/etc/ssh/sshd_config.d/
-	cat <<- EOF >  mkosi.extra/etc/ssh/sshd_config.d/90-gcp.conf
-		ChallengeResponseAuthentication no
+	cat <<- EOF >  mkosi.extra/etc/ssh/sshd_config
+		Include /etc/ssh/sshd_config.d/*.conf
+		AuthorizedKeysFile	.ssh/authorized_keys
+		Subsystem	sftp	/usr/libexec/openssh/sftp-server
 		UsePAM no
 		PasswordAuthentication no
 		PermitEmptyPasswords no
 		PermitRootLogin prohibit-password
 	EOF
-	chmod go-rw mkosi.extra/etc/ssh/sshd_config.d/90-gcp.conf
+	chmod go-rw mkosi.extra/etc/ssh/sshd_config
 }
 
 make_rootfs()
