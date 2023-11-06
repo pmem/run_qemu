@@ -343,6 +343,13 @@ process_options_logic()
 		console="ttyS0,38400n8d"
 		set_topology "gcp"
 	fi
+
+	num_cxl_pmems="$_arg_cxl_pmems"
+	if (( $num_cxl_pmems > 4 )); then
+		echo "error: a maximum of 4 CXL memdevs allowed"
+		exit 1
+	fi
+	num_cxl_vmems="$((4 - $num_cxl_pmems))"
 }
 
 install_build_initrd()
@@ -1113,11 +1120,19 @@ setup_cxl()
 	qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0")
 	qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
 
-	# Create the devices
-	qcmd+=("-device" "cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0")
-	qcmd+=("-device" "cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2")
-	qcmd+=("-device" "cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3")
+	# Create pmem and volatile devices
+	for (( i = 0; i < 4; i++ )); do
+		bus_str="bus=hb$((i/2))rp$((i%2))"
+		lsa_str="lsa=cxl-lsa$i"
+		if (( i < num_cxl_pmems )); then
+			mem_str="persistent-memdev=cxl-mem$i"
+			id_str="id=cxl-pmem$i"
+		else
+			mem_str="volatile-memdev=cxl-mem$i"
+			id_str="id=cxl-vmem$i"
+		fi
+		qcmd+=("-device" "cxl-type3,$bus_str,$mem_str,$id_str,$lsa_str")
+	done
 
 	# Finally, the CFMWS entries
 	declare -a cfmws_params
