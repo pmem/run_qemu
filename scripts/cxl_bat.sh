@@ -96,7 +96,7 @@ test_write_labels()
 		for (( i = 0; i < 10; i++ )); do
 			randsize="$(get_rand_range 1 $max_size)"
 			attempt "label size: $randsize"
-			rm "$label_in" "$label_out"
+			rm -f "$label_in" "$label_out"
 			dd if=/dev/urandom of="$label_in" bs=1 count="$randsize" > /dev/null 2>&1
 			do_cmd_silent "write-labels" "-i" "$label_in" "-s" "$randsize" "$memdev"
 			do_cmd_silent "read-labels" -o "$label_out" "-s" "$randsize" "$memdev"
