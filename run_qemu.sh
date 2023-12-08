@@ -133,7 +133,7 @@ guest_alive()
 
 loop_teardown()
 {
-	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	if [ -b "$loopdev" ]; then
 		sudo umount "${loopdev}p1" || true
 		sudo umount "${loopdev}p2" || true
@@ -515,7 +515,7 @@ mount_rootfs()
 	test -s "$_arg_rootfs"
 	mkdir -p "$mp"
 	sudo losetup -Pf "$_arg_rootfs"
-	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
 		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
@@ -535,7 +535,7 @@ umount_rootfs()
 	partnum="$1"
 	mp="mnt"
 
-	loopdev="$(losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
 		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
@@ -749,7 +749,7 @@ setup_depmod()
 		echo "not found: $system_map. Try rebuilding with '-r img'"
 		return 1
 	fi
-	depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
+	sudo depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
 
 __update_existing_rootfs()
