@@ -411,6 +411,9 @@ __build_kernel()
 	inst_path="$builddir/mkosi.extra/boot"
 
 	mkdir -p "$inst_path"
+	# /lib -> /usr/lib
+	mkdir -p "${inst_prefix}/usr/lib"
+	ln -s usr/lib ${inst_prefix}/lib
 
 	if [[ $_arg_defconfig == "on" ]]; then
 		make olddefconfig
