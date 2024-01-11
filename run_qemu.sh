@@ -1216,7 +1216,7 @@ prepare_qcmd()
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
 	qcmd+=("-smp" "${smp},sockets=${num_nodes},cores=${cores},threads=${threads}")
-	qcmd+=("-enable-kvm" "-display" "none" "$dispmode")
+	qcmd+=("-display" "none" "$dispmode")
 	if [[ $_arg_log ]]; then
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
