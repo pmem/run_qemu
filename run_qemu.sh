@@ -6,6 +6,7 @@
 : "${builddir:=./qbuild}"
 rootpw="root"
 rootfssize="10G"
+espsize="512M"
 nvme_size="1G"
 efi_mem_size="2"   #in GiB
 legacy_pmem_size="2"   #in GiB
@@ -860,6 +861,7 @@ make_rootfs()
 	mkdir -p mkosi.builddir
 	sed -e "s:@OS_DISTRO@:${distro}:" \
 		-e "s:@OS_RELEASE@:${rev}:" \
+		-e "s:@ESP_SIZE@:${espsize}:" \
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
 		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
 		-e "s:@ROOT_PASS@:${rootpw}:" \
