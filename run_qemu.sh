@@ -1168,6 +1168,7 @@ prepare_qcmd()
 	else
 		vmlinuz="$(find . -name "vmlinuz*" | grep -vE ".*\.old$" | tail -1)"
 	fi
+	vmlinuz=${vmlinuz:-/path/to/vmlinuz}
 
 	# if a kver was specified, try to use the same initrd
 	if [ -n "$kver" ] && [ -e "mkosi.extra/boot/initramfs-$kver.img" ]; then
@@ -1178,6 +1179,7 @@ prepare_qcmd()
 	if [ -z "$initrd" ]; then
 		initrd=$(find "mkosi.extra/boot" -name "initramfs*" -print | head -1)
 	fi
+	initrd=${initrd:-/path/to/initrd}
 
 	# a 'node' implies a 'mem' attached to it
 	qemu_mem="$((_arg_mem_size * (num_mems + num_nodes)))"
@@ -1355,6 +1357,7 @@ main()
 {
 	mkdir -p "$builddir"
 	process_options_logic
+	prepare_qcmd
 
 	case "$_arg_rebuild" in
 		kmod)
@@ -1389,7 +1392,6 @@ main()
 			;;
 	esac
 
-	prepare_qcmd
 	if [[ $_arg_run == "on" ]]; then
 		start_qemu
 	fi
