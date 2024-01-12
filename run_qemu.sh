@@ -21,6 +21,7 @@ selftests_home=root/built-selftests
 mkosi_bin="mkosi"
 mkosi_opts=("-i" "-f")
 console="ttyS0"
+accel="kvm"
 
 # some canned hmat defaults - make configurable as/when needed
 # terminology:
@@ -350,6 +351,10 @@ process_options_logic()
 		exit 1
 	fi
 	num_cxl_vmems="$((4 - $num_cxl_pmems))"
+
+	if [[ $_arg_kvm = "off" ]]; then
+		accel="tcg"
+	fi
 }
 
 install_build_initrd()
@@ -1202,7 +1207,7 @@ prepare_qcmd()
 	qcmd+=("$qemu")
 
 	# setup machine_args
-	machine_args=("q35" "accel=kvm")
+	machine_args=("q35" "accel=$accel")
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
@@ -1216,7 +1221,7 @@ prepare_qcmd()
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
 	qcmd+=("-smp" "${smp},sockets=${num_nodes},cores=${cores},threads=${threads}")
-	qcmd+=("-enable-kvm" "-display" "none" "$dispmode")
+	qcmd+=("-display" "none" "$dispmode")
 	if [[ $_arg_log ]]; then
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
