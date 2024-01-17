@@ -90,6 +90,12 @@ fi
 # shellcheck source=run_qemu_parser.sh
 . "${script_dir}/run_qemu_parser.sh" || fail "Couldn't find $parser_lib"
 
+if [ ${_arg_working_dir:0:1} == "-" ]; then
+	printf "Invalid option '%s'\n" "$_arg_working_dir"
+	printf "Try 'run_qemu.sh --help' for more information.\n"
+	exit 1
+fi
+
 cxl_test_script="$script_dir/scripts/rq_cxl_tests.sh"
 cxl_results_script="$script_dir/scripts/rq_cxl_results.sh"
 nfit_test_script="$script_dir/scripts/rq_nfit_tests.sh"
