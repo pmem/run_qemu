@@ -358,6 +358,16 @@ process_options_logic()
 	fi
 }
 
+make_install_kernel()
+{
+	local inst_path="$1"
+
+	cat arch/x86_64/boot/bzImage > $inst_path/vmlinuz-$kver
+	cp System.map $inst_path/System.map-$kver
+	ln -fs $inst_path/vmlinuz-$kver $inst_path/vmlinuz
+	ln -fs $inst_path/System.map-$kver $inst_path/System.map
+}
+
 install_build_initrd()
 {
 	inst_prefix="$builddir/mkosi.extra"
@@ -365,7 +375,7 @@ install_build_initrd()
 
 	make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
-	make INSTALL_PATH="$inst_path" INSTALL_MOD_PATH="$inst_prefix" INSTALL_HDR_PATH="$inst_prefix/usr" install
+	make_install_kernel "$inst_path"
 
 	# Much of the script relies on a kernel named vmlinuz-$kver. This is
 	# distro specific as the default from Linux is simply "vmlinuz". Adjust
@@ -739,6 +749,7 @@ setup_depmod()
 __update_existing_rootfs()
 {
 	inst_prefix="$builddir/mnt"
+	inst_path="$inst_prefix/boot"
 
 	mount_rootfs 2 # Linux root partition
 	if [[ $_arg_nfit_test == "on" ]]; then
@@ -759,7 +770,7 @@ __update_existing_rootfs()
 	fi
 	sudo make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	sudo make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
-	sudo make INSTALL_PATH="$inst_prefix" INSTALL_MOD_PATH="$inst_prefix" INSTALL_HDR_PATH="$inst_prefix/usr" install
+	sudo -E bash -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
