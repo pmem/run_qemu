@@ -1,0 +1,49 @@
+[Distribution]
+Distribution=@OS_DISTRO@
+Release=@OS_RELEASE@
+
+[Partitions]
+RootSize=@ROOT_SIZE@
+ESPSize=@ESP_SIZE@
+
+[Output]
+Format=raw_gpt
+Bootable=yes
+WithUnifiedKernelImages=no
+Output=@ROOT_FS@
+
+[Packages]
+Packages=
+  ndctl
+  openssh-client
+  lsof
+  strace
+  ltrace
+  fio
+  build-essential
+  vim
+  autoconf
+  automake
+  libtool
+  asciidoctor
+  libkmod-dev
+  libudev-dev
+  uuid-dev
+  libjson-c-dev
+  bash-completion
+  libkeyutils-dev
+  python3
+  cmake
+  openssh-server
+  gdb
+  git
+  hwloc
+  ubuntu-minimal
+  libiniparser-dev
+  libtracefs-dev
+  libtraceevent-dev
+  libsystemd-dev
+  meson
+
+[Validation]
+Password=@ROOT_PASS@
