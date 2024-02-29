@@ -1147,9 +1147,23 @@ setup_cxl()
 	qcmd+=("-device" "cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0")
 	qcmd+=("-device" "cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1")
 
+	# switch under hb1rp0
+	qcmd+=("-device" "cxl-upstream,port=33,bus=hb1rp0,id=cxl-up0,multifunction=on,addr=0.0,sn=12345678")
+	qcmd+=("-device" "cxl-switch-mailbox-cci,bus=hb1rp0,addr=0.1,target=cxl-up0")
+
+	# 4 downstream ports under switch upstream port cxl-up0
+	qcmd+=("-device" "cxl-downstream,port=0,bus=cxl-up0,id=swport0,chassis=0,slot=5")
+	qcmd+=("-device" "cxl-downstream,port=1,bus=cxl-up0,id=swport1,chassis=0,slot=6")
+	qcmd+=("-device" "cxl-downstream,port=2,bus=cxl-up0,id=swport2,chassis=0,slot=7")
+	qcmd+=("-device" "cxl-downstream,port=3,bus=cxl-up0,id=swport3,chassis=0,slot=8")
+
 	# Create pmem and volatile devices
 	for (( i = 0; i < 4; i++ )); do
-		bus_str="bus=hb$((i/2))rp$((i%2))"
+		if ((i < 2)); then
+			bus_str="bus=hb$((i/2))rp$((i%2))"
+		else
+			bus_str="bus=swport$((i-2))"
+		fi
 		lsa_str="lsa=cxl-lsa$i"
 		if (( i < num_cxl_pmems )); then
 			mem_str="persistent-memdev=cxl-mem$i"
