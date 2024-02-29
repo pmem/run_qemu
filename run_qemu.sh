@@ -413,7 +413,7 @@ __build_kernel()
 	mkdir -p "$inst_path"
 	# /lib -> /usr/lib
 	mkdir -p "${inst_prefix}/usr/lib"
-	ln -s usr/lib ${inst_prefix}/lib
+	ln -sf usr/lib "${inst_prefix}/lib"
 
 	if [[ $_arg_defconfig == "on" ]]; then
 		make olddefconfig
