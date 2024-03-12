@@ -25,7 +25,7 @@ _run_qemu()
 			;;
 		--rebuild=*)
 			cur=${cur#*=}
-			COMPREPLY=($(compgen -W 'wipe img kmod kernel none' -- ${cur}))
+			COMPREPLY=($(compgen -W 'wipe imgcache img kmod none' -- ${cur}))
 			return
 			;;
 		--mirror=*)
