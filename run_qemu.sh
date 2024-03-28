@@ -418,38 +418,43 @@ __build_kernel()
 	inst_prefix="$builddir/mkosi.extra"
 	inst_path="$builddir/mkosi.extra/boot"
 
+	quiet=""
+	if (( _arg_quiet >= 1 )); then
+		quiet="--quiet"
+	fi
+
 	mkdir -p "$inst_path"
 	# /lib -> /usr/lib
 	mkdir -p "${inst_prefix}/usr/lib"
 	ln -sf usr/lib "${inst_prefix}/lib"
 
 	if [[ $_arg_defconfig == "on" ]]; then
-		make olddefconfig
-		make prepare
+		make $quiet olddefconfig
+		make $quiet prepare
 	fi
 	kver=$(make -s kernelrelease)
 	test -n "$kver"
-	make -j"$num_build_cpus"
+	make $quiet -j"$num_build_cpus"
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
-		make -j"$num_build_cpus" M="$test_path"
-		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet -j"$num_build_cpus" M="$test_path"
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
 	fi
 	if [[ $_arg_cxl_test == "on" ]]; then
 		test_path="tools/testing/cxl"
 
-		make -j"$num_build_cpus" M="$test_path"
-		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet -j"$num_build_cpus" M="$test_path"
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
 	fi
 
 	if [[ $_arg_kern_selftests == "on" ]]; then
 		selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
-		make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+		make $quiet -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
 	fi
 
 	if [[ $_arg_gdb == "on" ]]; then
-		make scripts_gdb
+		make $quiet scripts_gdb
 	fi
 
 	if (( _arg_quiet >= 1 )); then
