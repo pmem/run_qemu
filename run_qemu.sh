@@ -68,7 +68,15 @@ if [[ $qemu_dir != . ]]; then
 	qmp="$qemu_dir/scripts/qmp/qmp-shell"
 else
 	qemu_img="qemu-img"
-	qmp="qmp"
+	# Allows to not find the command qmp-shell
+	set +Ee
+	qmp=$(command -v qmp-shell)
+	# Do not leave qmp variable empty
+	if [ -z "$qmp" ]; then
+		qmp="qmp"
+	fi
+	# Back to the original setup
+	set -Ee
 fi
 
 fail()
