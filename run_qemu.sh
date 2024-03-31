@@ -387,7 +387,6 @@ install_build_initrd()
 	inst_prefix="$builddir/mkosi.extra"
 	inst_path="$builddir/mkosi.extra/boot"
 
-	make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	make_install_kernel "$inst_path"
 
@@ -435,6 +434,7 @@ __build_kernel()
 	kver=$(make -s kernelrelease)
 	test -n "$kver"
 	make $quiet -j"$num_build_cpus"
+	make $quiet -j"$num_build_cpus" INSTALL_MOD_PATH="$inst_prefix" modules_install
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
