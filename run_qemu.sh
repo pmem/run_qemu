@@ -434,18 +434,24 @@ __build_kernel()
 	kver=$(make -s kernelrelease)
 	test -n "$kver"
 	make $quiet -j"$num_build_cpus"
-	make $quiet -j"$num_build_cpus" INSTALL_MOD_PATH="$inst_prefix" modules_install
+
+	# Install Modules Strip = ims
+	local ims=""
+	if [[ $_arg_strip_modules == "on" ]]; then
+		ims="INSTALL_MOD_STRIP=1"
+	fi
+	make $quiet -j"$num_build_cpus" INSTALL_MOD_PATH="$inst_prefix" $ims modules_install
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
 		make $quiet -j"$num_build_cpus" M="$test_path"
-		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
 	fi
 	if [[ $_arg_cxl_test == "on" ]]; then
 		test_path="tools/testing/cxl"
 
 		make $quiet -j"$num_build_cpus" M="$test_path"
-		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
 	fi
 
 	if [[ $_arg_kern_selftests == "on" ]]; then
@@ -773,12 +779,18 @@ __update_existing_rootfs()
 	inst_prefix="$builddir/mnt"
 	inst_path="$inst_prefix/boot"
 
+	# Install Modules Strip = ims
+	local ims=""
+	if [[ $_arg_strip_modules == "on" ]]; then
+		ims="INSTALL_MOD_STRIP=1"
+	fi
+
 	mount_rootfs 2 # Linux root partition
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
 		make -j"$num_build_cpus" M="$test_path"
-		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
 	else
 		sudo rm -rf "$test_path"/*.ko
 	fi
@@ -786,11 +798,11 @@ __update_existing_rootfs()
 		test_path="tools/testing/cxl"
 
 		make -j"$num_build_cpus" M="$test_path"
-		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
 	else
 		sudo rm -rf "$test_path"/*.ko
 	fi
-	sudo make INSTALL_MOD_PATH="$inst_prefix" modules_install
+	sudo make INSTALL_MOD_PATH="$inst_prefix" $ims modules_install
 	sudo make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	sudo -E bash -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
 
