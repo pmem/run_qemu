@@ -399,17 +399,28 @@ install_build_initrd()
 	# and it expects a /lib/modules/$kver/vmlinuz
 	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
 
-	dracut --force --verbose \
-		--no-hostonly \
-		--show-modules \
-		--kver="$kver" \
-		--filesystems="xfs ext4" \
-		--kmoddir "$inst_prefix/lib/modules/$kver/" \
-		--kernel-image "./vmlinux" \
-		--add "bash systemd kernel-modules fs-lib" \
-		--omit "iscsi fcoe fcoe-uefi" \
-		--omit-drivers "nfit libnvdimm nd_pmem" \
-		"$inst_path/initramfs-$kver.img"
+	# On debian use mkinitramfs tool instead of dracut
+	if [ "${distro}" = "debian" ] ; then
+		sudo cp .config /boot/config-$kver
+		sudo ln -sf $inst_prefix/usr/lib/modules/$kver /usr/lib/modules
+		sudo mkinitramfs -v \
+			-o "$inst_path/initramfs-$kver.img" \
+			$kver
+		sudo rm -f /boot/config-$kver
+		sudo rm -f /usr/lib/modules/$kver
+	else
+		dracut --force --verbose \
+			--no-hostonly \
+			--show-modules \
+			--kver="$kver" \
+			--filesystems="xfs ext4" \
+			--kmoddir "$inst_prefix/lib/modules/$kver/" \
+			--kernel-image "./vmlinux" \
+			--add "bash systemd kernel-modules fs-lib" \
+			--omit "iscsi fcoe fcoe-uefi" \
+			--omit-drivers "nfit libnvdimm nd_pmem" \
+			"$inst_path/initramfs-$kver.img"
+	fi
 }
 
 __build_kernel()
