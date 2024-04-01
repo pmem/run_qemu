@@ -6,6 +6,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # Rearrange the order of options below according to what you would like to see in the help message.
 # ARG_OPTIONAL_SINGLE([rootfs], , [Non-default rootfs image to use], [root.img])
 # ARG_OPTIONAL_SINGLE([rebuild], [r], [Choose one of:\n wipe: wipe builddir, removing package cache\n imgcache: remove mkosi's cached pre-images to rebuild the image without an 'incremental build'\n img: rebuild rootfs from scratch and kernel\n kmod: rebuild kernel, update rootfs modules\n none: don't rebuild anything, start qemu\n], [kmod])
+# ARG_OPTIONAL_BOOLEAN([strip-modules], , [Strip kernel modules after they are installed], [off])
 # ARG_OPTIONAL_SINGLE([nvmes], , [Number of NVMe devices to attach: (see preset)], [])
 # ARG_OPTIONAL_SINGLE([nodes], , [Number of nodes (cpu + memory nodes): (see preset)], [])
 # ARG_OPTIONAL_SINGLE([mems], , [Number of memory-only nodes: (see preset)], [])
