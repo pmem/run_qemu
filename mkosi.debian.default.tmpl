@@ -7,43 +7,43 @@ RootSize=@ROOT_SIZE@
 ESPSize=@ESP_SIZE@
 
 [Output]
-Format=raw_gpt
+Format=gpt_ext4
 Bootable=yes
 WithUnifiedKernelImages=no
 Output=@ROOT_FS@
 
-[Packages]
+[Content]
 Packages=
-  ndctl
-  openssh-client
-  lsof
-  strace
-  ltrace
-  fio
-  build-essential
-  vim
+  asciidoctor
   autoconf
   automake
-  libtool
-  asciidoctor
-  libkmod-dev
-  libudev-dev
-  uuid-dev
-  libjson-c-dev
   bash-completion
-  libkeyutils-dev
-  python3
+  build-essential
   cmake
-  openssh-server
+  fio
   gdb
   git
   hwloc
-  ubuntu-minimal
   libiniparser-dev
-  libtracefs-dev
-  libtraceevent-dev
+  libjson-c-dev
+  libkeyutils-dev
+  libkmod-dev
+  libkmod2
+  libndctl-dev
   libsystemd-dev
+  libtool
+  libtraceevent-dev
+  libtracefs-dev
+  libudev-dev
+  lsof
+  ltrace
   meson
-
-[Validation]
+  ndctl
+  openssh-client
+  openssh-server
+  pkgconf
+  python3
+  strace
+  uuid-dev
+  vim
 Password=@ROOT_PASS@
