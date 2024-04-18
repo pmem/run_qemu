@@ -1377,7 +1377,7 @@ prepare_qcmd()
 		set +x
 		for elem in "${qcmd[@]}"; do
 			if [[ $elem == -* ]]; then
-				echo
+				echo "\\"
 			fi
 			printf "%s " "$elem"
 		done
