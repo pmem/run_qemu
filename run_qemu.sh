@@ -1247,7 +1247,7 @@ prepare_qcmd()
 	fi
 
 	# if initrd still hasn't been determined, attempt to use a previous one
-	if [ -z "$initrd" ]; then
+	if [ -z "$initrd" -a -d mkosi.extra/boot ]; then
 		initrd=$(find "mkosi.extra/boot" -name "initramfs*" -print | head -1)
 	fi
 
