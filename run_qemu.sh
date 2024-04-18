@@ -1298,7 +1298,7 @@ prepare_qcmd()
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
-	if [[ $_arg_direct_kernel == "on" ]]; then
+	if [ $_arg_direct_kernel = "on" -a -n "$vmlinuz" -a -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
 	fi
