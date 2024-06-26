@@ -68,7 +68,15 @@ if [[ $qemu_dir != . ]]; then
 	qmp="$qemu_dir/scripts/qmp/qmp-shell"
 else
 	qemu_img="qemu-img"
-	qmp="qmp"
+	# Allows to not find the command qmp-shell
+	set +Ee
+	qmp=$(command -v qmp-shell)
+	# Do not leave qmp variable empty
+	if [ -z "$qmp" ]; then
+		qmp="qmp"
+	fi
+	# Back to the original setup
+	set -Ee
 fi
 
 fail()
@@ -379,7 +387,6 @@ install_build_initrd()
 	inst_prefix="$builddir/mkosi.extra"
 	inst_path="$builddir/mkosi.extra/boot"
 
-	make INSTALL_MOD_PATH="$inst_prefix" modules_install
 	make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	make_install_kernel "$inst_path"
 
@@ -392,17 +399,28 @@ install_build_initrd()
 	# and it expects a /lib/modules/$kver/vmlinuz
 	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
 
-	dracut --force --verbose \
-		--no-hostonly \
-		--show-modules \
-		--kver="$kver" \
-		--filesystems="xfs ext4" \
-		--kmoddir "$inst_prefix/lib/modules/$kver/" \
-		--kernel-image "./vmlinux" \
-		--add "bash systemd kernel-modules fs-lib" \
-		--omit "iscsi fcoe fcoe-uefi" \
-		--omit-drivers "nfit libnvdimm nd_pmem" \
-		"$inst_path/initramfs-$kver.img"
+	# On debian use mkinitramfs tool instead of dracut
+	if [ "${distro}" = "debian" ] ; then
+		sudo cp .config /boot/config-$kver
+		sudo ln -sf $inst_prefix/usr/lib/modules/$kver /usr/lib/modules
+		sudo mkinitramfs -v \
+			-o "$inst_path/initramfs-$kver.img" \
+			$kver
+		sudo rm -f /boot/config-$kver
+		sudo rm -f /usr/lib/modules/$kver
+	else
+		dracut --force --verbose \
+			--no-hostonly \
+			--show-modules \
+			--kver="$kver" \
+			--filesystems="xfs ext4" \
+			--kmoddir "$inst_prefix/lib/modules/$kver/" \
+			--kernel-image "./vmlinux" \
+			--add "bash systemd kernel-modules fs-lib" \
+			--omit "iscsi fcoe fcoe-uefi" \
+			--omit-drivers "nfit libnvdimm nd_pmem" \
+			"$inst_path/initramfs-$kver.img"
+	fi
 }
 
 __build_kernel()
@@ -410,38 +428,49 @@ __build_kernel()
 	inst_prefix="$builddir/mkosi.extra"
 	inst_path="$builddir/mkosi.extra/boot"
 
+	quiet=""
+	if (( _arg_quiet >= 1 )); then
+		quiet="--quiet"
+	fi
+
 	mkdir -p "$inst_path"
 	# /lib -> /usr/lib
 	mkdir -p "${inst_prefix}/usr/lib"
 	ln -sf usr/lib "${inst_prefix}/lib"
 
 	if [[ $_arg_defconfig == "on" ]]; then
-		make olddefconfig
-		make prepare
+		make $quiet olddefconfig
+		make $quiet prepare
 	fi
 	kver=$(make -s kernelrelease)
 	test -n "$kver"
-	make -j"$num_build_cpus"
+	make $quiet -j"$num_build_cpus"
+
+	local install_mod_strip=""
+	if [[ $_arg_strip_modules == "on" ]]; then
+		install_mod_strip="INSTALL_MOD_STRIP=1"
+	fi
+	make $quiet -j"$num_build_cpus" INSTALL_MOD_PATH="$inst_prefix" $install_mod_strip modules_install
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
-		make -j"$num_build_cpus" M="$test_path"
-		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet -j"$num_build_cpus" M="$test_path"
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $install_mod_strip modules_install
 	fi
 	if [[ $_arg_cxl_test == "on" ]]; then
 		test_path="tools/testing/cxl"
 
-		make -j"$num_build_cpus" M="$test_path"
-		make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		make $quiet -j"$num_build_cpus" M="$test_path"
+		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $install_mod_strip modules_install
 	fi
 
 	if [[ $_arg_kern_selftests == "on" ]]; then
 		selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
-		make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+		make $quiet -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
 	fi
 
 	if [[ $_arg_gdb == "on" ]]; then
-		make scripts_gdb
+		make $quiet scripts_gdb
 	fi
 
 	if (( _arg_quiet >= 1 )); then
@@ -760,12 +789,17 @@ __update_existing_rootfs()
 	inst_prefix="$builddir/mnt"
 	inst_path="$inst_prefix/boot"
 
+	local install_mod_strip=""
+	if [[ $_arg_strip_modules == "on" ]]; then
+		install_mod_strip="INSTALL_MOD_STRIP=1"
+	fi
+
 	mount_rootfs 2 # Linux root partition
 	if [[ $_arg_nfit_test == "on" ]]; then
 		test_path="tools/testing/nvdimm"
 
 		make -j"$num_build_cpus" M="$test_path"
-		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $install_mod_strip modules_install
 	else
 		sudo rm -rf "$test_path"/*.ko
 	fi
@@ -773,11 +807,11 @@ __update_existing_rootfs()
 		test_path="tools/testing/cxl"
 
 		make -j"$num_build_cpus" M="$test_path"
-		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" modules_install
+		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $install_mod_strip modules_install
 	else
 		sudo rm -rf "$test_path"/*.ko
 	fi
-	sudo make INSTALL_MOD_PATH="$inst_prefix" modules_install
+	sudo make INSTALL_MOD_PATH="$inst_prefix" $install_mod_strip modules_install
 	sudo make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
 	sudo -E bash -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
 
@@ -1222,7 +1256,7 @@ prepare_qcmd()
 	fi
 
 	# if initrd still hasn't been determined, attempt to use a previous one
-	if [ -z "$initrd" ]; then
+	if [ -z "$initrd" -a -d mkosi.extra/boot ]; then
 		initrd=$(find "mkosi.extra/boot" -name "initramfs*" -print | head -1)
 	fi
 
@@ -1273,7 +1307,7 @@ prepare_qcmd()
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
-	if [[ $_arg_direct_kernel == "on" ]]; then
+	if [ $_arg_direct_kernel = "on" -a -n "$vmlinuz" -a -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
 	fi
@@ -1352,7 +1386,7 @@ prepare_qcmd()
 		set +x
 		for elem in "${qcmd[@]}"; do
 			if [[ $elem == -* ]]; then
-				echo
+				echo "\\"
 			fi
 			printf "%s " "$elem"
 		done
