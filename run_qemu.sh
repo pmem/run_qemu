@@ -1314,6 +1314,8 @@ prepare_qcmd()
 
 	qcmd+=("-device" "e1000,netdev=net0,mac=$mac_addr")
 	qcmd+=("-netdev" "user,id=net0,hostfwd=tcp::$hostport-:22")
+	# Use host CPU capability
+	qcmd+=("-cpu" "host")
 
 	if [[ $_arg_cxl == "on" ]]; then
 		setup_cxl
