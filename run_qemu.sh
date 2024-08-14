@@ -587,6 +587,8 @@ build_kernel_cmdline()
 		"root=$root"
 		"ignore_loglevel"
 		"rw"
+		"initcall_debug"
+		"log_buf_len=20M"
 		"memory_hotplug.memmap_on_memory=force"
 	)
 	if [[ $_arg_gdb == "on" ]]; then
