@@ -165,7 +165,7 @@ set_topology()
 		num_nvmes=0
 		num_nodes=1
 		num_mems=0
-		num_pmems=1
+		num_pmems=0
 		num_efi_mems=0
 		num_legacy_pmems=0
 		;;
