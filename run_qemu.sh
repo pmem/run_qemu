@@ -916,7 +916,12 @@ make_rootfs()
 
 	# misc rootfs setup
 	mkdir -p mkosi.extra/root/.ssh
-	cp -L ~/.ssh/id_rsa.pub mkosi.extra/root/.ssh/authorized_keys
+	local pubk
+	for pubk in ~/.ssh/*.pub; do
+		if test -e "${pubk%.pub}"; then
+			cat "${pubk}"
+		fi
+	done > mkosi.extra/root/.ssh/authorized_keys
 	chmod -R go-rwx mkosi.extra/root
 
 	rootfs_script="${script_dir}/${distro}_rootfs.sh"
