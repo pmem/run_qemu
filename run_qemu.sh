@@ -81,7 +81,9 @@ fi
 
 fail()
 {
-	printf "%s\n" "$*"
+	# shellcheck disable=SC2059
+	printf "$@"
+	printf '\n'
 	exit 1
 }
 
