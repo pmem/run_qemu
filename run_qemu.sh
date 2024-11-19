@@ -977,8 +977,15 @@ make_rootfs()
 		prepare_ndctl_build
 	fi
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
+	# drop the "~devel" suffix present in __version__ when running from
+	# pre-v25 versions
+	mkosi_ver="${mkosi_ver%%~*}"
 	# only look at the major version
 	mkosi_ver="${mkosi_ver%%.*}"
+	# Make sure we got a number
+	test "$mkosi_ver" -eq "$mkosi_ver" ||
+		fail 'mkosi version %s is not a number' "$mkosi_ver"
+
 	if (( mkosi_ver >= 9 )) && [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
 	fi
