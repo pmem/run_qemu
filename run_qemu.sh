@@ -980,6 +980,14 @@ make_rootfs()
 	if (( mkosi_ver >= 9 )) && [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
 	fi
+
+	if [[ $_arg_debug == "on" ]]; then
+	    # In case of yet another mkosi incompatibility or other issue,
+	    # enable this line. WARNING: --debug options have "stability" issues
+	    # too! Check the man page of your specific mkosi version
+	    : # mkosi_opts+=('--debug-workspace' '--debug-shell' '--debug')
+	fi
+
 	mkosi_opts+=("build")
 	if (( _arg_quiet < 3 )); then
 		echo "in directory: $(pwd)"
