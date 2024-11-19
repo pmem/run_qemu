@@ -982,7 +982,8 @@ make_rootfs()
 	fi
 	mkosi_opts+=("build")
 	if (( _arg_quiet < 3 )); then
-		echo "running: $mkosi_bin ${mkosi_opts[*]}"
+		echo "in directory: $(pwd)"
+		echo "running: sudo -E $mkosi_bin ${mkosi_opts[*]}"
 	fi
 	if (( _arg_quiet >= 1 )); then
 		sudo -E "$mkosi_bin" "${mkosi_opts[@]}" > /dev/null 2>&1
