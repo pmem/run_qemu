@@ -120,6 +120,20 @@ distro_vars="${script_dir}/${distro}_vars.sh"
 
 pushd "$_arg_working_dir" > /dev/null || fail "couldn't cd to $_arg_working_dir"
 
+set_valid_mkosi_ver()
+{
+	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
+	# drop the "~devel" suffix present in __version__ when running from
+	# pre-v25 versions
+	mkosi_ver="${mkosi_ver%%~*}"
+	# only look at the major version
+	mkosi_ver="${mkosi_ver%%.*}"
+	# Make sure we got a number
+	test "$mkosi_ver" -eq "$mkosi_ver" ||
+		fail 'mkosi version %s is not a number' "$mkosi_ver"
+}
+set_valid_mkosi_ver
+
 kill_guest()
 {
 	# sometimes this can be inadvertently re-entrant
@@ -976,15 +990,6 @@ make_rootfs()
 	if [[ $_arg_ndctl_build == "on" ]]; then
 		prepare_ndctl_build
 	fi
-	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
-	# drop the "~devel" suffix present in __version__ when running from
-	# pre-v25 versions
-	mkosi_ver="${mkosi_ver%%~*}"
-	# only look at the major version
-	mkosi_ver="${mkosi_ver%%.*}"
-	# Make sure we got a number
-	test "$mkosi_ver" -eq "$mkosi_ver" ||
-		fail 'mkosi version %s is not a number' "$mkosi_ver"
 
 	if (( mkosi_ver >= 9 )) && [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
