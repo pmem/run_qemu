@@ -9,6 +9,20 @@
  several times
  - `argbash` to generate the argument parser lib (using `parser_generator.m4`)
 
+## Fedora 39+ Notes
+
+Fedora 39 updates mkosi to 15 (and later) which contains a lot of breaking changes,
+and indeed breaks various expectations with run_qemu's usage of it.
+
+Fedora has packaged mkosi 14 separately and in parallel to the latest mkosi.
+Uninstall the default mkosi package, and install 'mkosi14' to continue using run_qemu
+on Fedora 39 and later.
+
+```
+# dnf remove mkosi
+# dnf install mkosi14
+```
+
 # Installation
  - symlink the `run_qemu.sh` script into somewhere in your `PATH`
    - e.g. `ln -s ~/git/run_qemu/run_qemu.sh ~/bin/run_qemu.sh`
@@ -108,18 +122,4 @@ lspci  | grep '3[45]:00'
 
 readlink -f /sys/bus/cxl/devices/mem0
 /sys/devices/pci0000:34/0000:34:00.0/0000:35:00.0/mem0
-```
-
-## Fedora 39+ Notes
-
-Fedora 39 updates mkosi to 15 (and later) which contains a lot of breaking changes,
-and indeed breaks various expectations with run_qemu's usage of it.
-
-Fedora has packaged mkosi 14 separately and in parallel to the latest mkosi.
-Uninstall the default mkosi package, and install 'mkosi14' to continue using run_qemu
-on Fedora 39 and later.
-
-```
-# dnf remove mkosi
-# dnf install mkosi14
 ```
