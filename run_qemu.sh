@@ -931,8 +931,10 @@ make_rootfs()
 		-e "s:@ESP_SIZE@:${espsize}:" \
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
 		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
-		-e "s:@ROOT_PASS@:${rootpw}:" \
 		"${script_dir}"/mkosi.${distro}.default.tmpl > mkosi.conf
+
+	# This depends on the [Content] section being last
+	printf '\nPassword=%s\n' "${rootpw}" >> mkosi.conf
 
 	# Backwards compatibility with mkosi v14 and below
 	rm -f mkosi.default
