@@ -928,7 +928,11 @@ make_rootfs()
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
 		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
 		-e "s:@ROOT_PASS@:${rootpw}:" \
-		"${script_dir}"/mkosi.${distro}.default.tmpl > mkosi.default
+		"${script_dir}"/mkosi.${distro}.default.tmpl > mkosi.conf
+
+	# Backwards compatibility with mkosi v14 and below
+	rm -f mkosi.default
+	ln mkosi.conf mkosi.default
 
 	# misc rootfs setup
 	mkdir -p mkosi.extra/root/.ssh
