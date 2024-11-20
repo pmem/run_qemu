@@ -1,0 +1,8 @@
+# Each line is a file pattern followed by one or more owners; users or teams.
+# Order is important: the last line matching has the most precedence.
+# File patterns work mostly like .gitignore (but not exactly).
+# Try to keep this file simple because it's literally impossible to test.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner(s) for everything in the repo
+*			@stellarhopper
