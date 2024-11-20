@@ -9,19 +9,25 @@
  several times
  - `argbash` to generate the argument parser lib (using `parser_generator.m4`)
 
+You can also git clone https://github.com/systemd/mkosi, symlink to
+`mkosi.git/bin/mkosi` and run mkosi directly from source. This works out of the box
+with git tags v15 and above.
+
 ## Fedora 39+ Notes
 
 Fedora 39 updates mkosi to 15 (and later) which contains a lot of breaking changes,
 and indeed breaks various expectations with run_qemu's usage of it.
 
-Fedora has packaged mkosi 14 separately and in parallel to the latest mkosi.
+Fedora 39 and 40 have packaged mkosi 14 separately and in parallel to the latest mkosi.
 Uninstall the default mkosi package, and install 'mkosi14' to continue using run_qemu
-on Fedora 39 and later.
+on Fedora 39 and 40:
 
 ```
-# dnf remove mkosi
+# dnf remove --noautoremove mkosi
 # dnf install mkosi14
 ```
+
+Fedora 41 has stopped packaging mkosi14.
 
 # Installation
  - symlink the `run_qemu.sh` script into somewhere in your `PATH`
