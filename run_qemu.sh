@@ -134,6 +134,10 @@ set_valid_mkosi_ver()
 }
 set_valid_mkosi_ver
 
+# [Packages] was renamed to [Content] in v11, see mkosi/NEWS.md
+test "$mkosi_ver" -ge 11 ||
+	fail 'mkosi version 11 or above is required, found %s' "$mkosi_ver"
+
 kill_guest()
 {
 	# sometimes this can be inadvertently re-entrant
@@ -995,7 +999,7 @@ make_rootfs()
 		prepare_ndctl_build
 	fi
 
-	if (( mkosi_ver >= 9 )) && [[ $_arg_gcp == "off" ]]; then
+	if [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
 	fi
 
