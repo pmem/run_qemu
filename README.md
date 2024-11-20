@@ -11,7 +11,7 @@
 
 You can also git clone https://github.com/systemd/mkosi, symlink to
 `mkosi.git/bin/mkosi` and run mkosi directly from source. This works out of the box
-with git tags v15 and above.
+with git tags v15 and above. `mkosi/README.md` offers other installation methods.
 
 ## Fedora 39+ Notes
 
@@ -50,7 +50,7 @@ Fedora 41 has stopped packaging mkosi14.
    - Create a rootfs image with the chosen distro using `mkosi`
    - Perform some basic setup on the rootfs, including installing the kernel,
      utilities (such as `ndctl`), and other convenience operations such as
-     copying your `~/.ssh/id_rsa.pub` for easy ssh access, and your `~/.bashrc`
+     copying `.ssh/*.pub` keys for easy access, and your `~/.bashrc`
      etc.
    - Boot qemu with the newly compiled kernel provided on the qemu command line,
      and using the rootfs image above
@@ -77,14 +77,15 @@ Fedora 41 has stopped packaging mkosi14.
  - To use the 'hostfwd' network, put this in your `.ssh/config`:
 
        Host rq
-       Hostname localhost
-       User root
-       Port 10022
-       StrictHostKeyChecking no
-       UserKnownHostsFile /dev/null
+         Hostname localhost
+         User root
+         Port 10022
+         StrictHostKeyChecking no
+         UserKnownHostsFile /dev/null
 
     And then `ssh rq`. You may need to open port 10022 on any local firewalls.
- - The root password for the guest VM is `root`. The serial console
+ - The root password for the guest VM is `root` by default but note many Linux
+   distributions restrict remote root access in various ways. The serial console
    automatically logs in, and a password isn't required.
 
 ## CXL Usage
