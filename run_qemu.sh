@@ -931,6 +931,7 @@ make_rootfs()
 		-e "s:@ESP_SIZE@:${espsize}:" \
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
 		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
+		"${script_dir}"/mkosi.generic.conf.tmpl \
 		"${script_dir}"/mkosi.${distro}.default.tmpl > mkosi.conf
 
 	# This depends on the [Content] section being last
