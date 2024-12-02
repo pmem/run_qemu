@@ -1,0 +1,77 @@
+---
+# Tools that can save round-trips to github and a lot of time:
+#
+# yamllint -f parsable pull_request.yml
+# pip3 install ruamel.yaml.cmd
+# yaml merge-expand pull_request.yml exp.yml &&
+#    diff -w -u pull_request.yml exp.yml
+#
+# github.com also has a powerful web editor that can be used without
+# committing.
+
+
+name: main test
+
+# 'workflow_dispatch' allows running this workflow manually from the
+# 'Actions' tab
+# yamllint disable-line rule:truthy
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ubuntu-24.04
+        arch: x86_64
+        run_opts: --cxl
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: run_qemu
+
+      - name: apt get requirements
+        run: |
+          # update is required first, see
+          # https://github.com/actions/runner-images/issues/2924
+          sudo apt-get update
+
+          # Kernel deps
+          sudo apt install -y build-essential flex bison libelf-dev libssl-dev
+
+          # run_qemu deps
+          sudo apt install -y mkosi # this one pulls A LOT
+          sudo apt install -y dracut-core
+
+      # argbash. TODO: mixing generated code and sources in the same git
+      # repo is generally a bad idea but this particular one changes
+      # rarely, so it should probably deserve an exception avoiding
+      # everyone this step.
+      - name: argbash
+        run: |
+          AB_VER=2.10.0
+          wget https://github.com/matejak/argbash/archive/refs/tags/${AB_VER}.tar.gz
+          tar xf ${AB_VER}.tar.gz
+          sudo apt install -y autoconf
+          sudo make -C argbash-${AB_VER}/resources install PREFIX=/usr/local/
+
+      - name: download kernel
+        uses: actions/checkout@v4
+        with:
+          repository: torvalds/linux
+          ref: v6.12
+          path: kernel
+
+      - name: defconfig
+        run: cd linux &&
+          make defconfig ARCH=${{ matrix.arch }}
+
+      - name: build
+        run: |
+          cd linux
+          sudo ../run_qemu/run_qemu -v --no-run ${{ matrix.run_opts }}
+
+      # TODO: drop --no-run thanks to "nested KVM" or something?
