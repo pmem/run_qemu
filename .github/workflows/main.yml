@@ -24,9 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ubuntu-24.04
-        arch: x86_64
-        run_opts: --cxl
+        os: [ubuntu-22.04, ubuntu-24.04]
+        arch: [x86_64]
+        run_opts: [--cxl]
 
     steps:
       - uses: actions/checkout@v4
@@ -66,12 +66,12 @@ jobs:
           path: kernel
 
       - name: defconfig
-        run: cd linux &&
+        run: cd kernel &&
           make defconfig ARCH=${{ matrix.arch }}
 
       - name: build
         run: |
-          cd linux
-          sudo ../run_qemu/run_qemu -v --no-run ${{ matrix.run_opts }}
+          cd kernel
+          sudo ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
 
       # TODO: drop --no-run thanks to "nested KVM" or something?
