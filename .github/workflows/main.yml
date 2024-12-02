@@ -24,9 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ubuntu-24.04
-        arch: x86_64
-        run_opts: --cxl
+        os: [ubuntu-22.04, ubuntu-24.04]
+        arch: [x86_64]
+        run_opts: [--cxl]
 
     steps:
       - uses: actions/checkout@v4
