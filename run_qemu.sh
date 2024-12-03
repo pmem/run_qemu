@@ -122,6 +122,7 @@ pushd "$_arg_working_dir" > /dev/null || fail "couldn't cd to $_arg_working_dir"
 
 set_valid_mkosi_ver()
 {
+	"$mkosi_bin" --version
 	mkosi_ver="$("$mkosi_bin" --version | awk '/mkosi/{ print $2 }')"
 	# drop the "~devel" suffix present in __version__ when running from
 	# pre-v25 versions
