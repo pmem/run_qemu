@@ -80,6 +80,7 @@ jobs:
 
       - name: build
         run: |
+          mkosi --version
           cd kernel
           sudo -E distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
