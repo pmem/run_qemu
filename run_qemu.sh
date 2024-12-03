@@ -920,6 +920,19 @@ setup_gcp_tweaks()
 	chmod go-rw mkosi.extra/etc/ssh/sshd_config
 }
 
+# $1 -> stdout
+process_mkosi_template()
+{
+	local src="$1"
+	sed \
+		-e "s:@OS_DISTRO@:${distro}:" \
+		-e "s:@OS_RELEASE@:${rev}:" \
+		-e "s:@ESP_SIZE@:${espsize}:" \
+		-e "s:@ROOT_SIZE@:${rootfssize}:" \
+		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
+		"$src"
+}
+
 make_rootfs()
 {
 	pushd "$builddir" > /dev/null || exit 1
@@ -927,13 +940,8 @@ make_rootfs()
 	# initialize mkosi configuration
 	mkdir -p mkosi.cache
 	mkdir -p mkosi.builddir
-	sed -e "s:@OS_DISTRO@:${distro}:" \
-		-e "s:@OS_RELEASE@:${rev}:" \
-		-e "s:@ESP_SIZE@:${espsize}:" \
-		-e "s:@ROOT_SIZE@:${rootfssize}:" \
-		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
-		"${script_dir}"/mkosi.generic.conf.tmpl \
-		"${script_dir}"/mkosi.${distro}.default.tmpl > mkosi.conf
+	process_mkosi_template "${script_dir}"/mkosi.generic.conf.tmpl > mkosi.conf
+	process_mkosi_template "${script_dir}"/mkosi.${distro}.default.tmpl >> mkosi.conf
 
 	# This depends on the [Content] section being last
 	printf '\nPassword=%s\n' "${rootpw}" >> mkosi.conf
