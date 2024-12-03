@@ -19,12 +19,21 @@ on: [pull_request, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.cfg.os }}
 
     strategy:
       fail-fast: false
+      # matrix is very flexible and not always "obvious"
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflo
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        # Keep it simple and just build "ourselves"
+        cfg:
+          - os: ubuntu-22.04
+            img_distro: ubuntu
+            img_rel: jammy
+          - os: ubuntu-24.04
+            img_distro: ubuntu
+            img_rel: noble
         arch: [x86_64]
         run_opts: [--cxl]
 
@@ -72,6 +81,7 @@ jobs:
       - name: build
         run: |
           cd kernel
-          sudo ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
+          sudo -E distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
+                 ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
 
       # TODO: drop --no-run thanks to "nested KVM" or something?
