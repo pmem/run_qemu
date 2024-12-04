@@ -473,6 +473,11 @@ __build_kernel()
 
 		make $quiet -j"$num_build_cpus" M="$test_path"
 		make $quiet INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
+		mkdir -p "$inst_prefix/usr/lib/modules/$kver/updates"
+		cp "$test_path"/*.ko "$inst_prefix/usr/lib/modules/$kver/updates"
+		mkdir -p "$inst_prefix/usr/lib/modules/$kver/updates/test"
+		cp "$test_path/test"/*.ko "$inst_prefix/usr/lib/modules/$kver/updates"
+		INSTALL_MOD_PATH="$inst_prefix" scripts/depmod.sh "$kver"
 	fi
 
 	if [[ $_arg_kern_selftests == "on" ]]; then
@@ -822,6 +827,11 @@ __update_existing_rootfs()
 
 		make -j"$num_build_cpus" M="$test_path"
 		sudo make INSTALL_MOD_PATH="$inst_prefix" M="$test_path" $ims modules_install
+		sudo mkdir -p "$inst_prefix/usr/lib/modules/$kver/updates"
+		sudo cp "$test_path"/*.ko "$inst_prefix/usr/lib/modules/$kver/updates"
+		sudo mkdir -p "$inst_prefix/usr/lib/modules/$kver/updates/test"
+		sudo cp "$test_path/test"/*.ko "$inst_prefix/usr/lib/modules/$kver/updates"
+		sudo -E INSTALL_MOD_PATH="$inst_prefix" scripts/depmod.sh "$kver"
 	else
 		sudo rm -rf "$test_path"/*.ko
 	fi
