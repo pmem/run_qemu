@@ -177,7 +177,23 @@ cleanup()
 	set +x
 }
 
-trap cleanup EXIT
+# In POSIX theory, the shell automatically saves for us the $? of the
+# "last command before the trap"; see special built-in 'exit' in
+# "2. Shell Command Language" on opengroup.org. However this is
+# too subtle (two concurrent '$?' now?) and difficult to trace,
+# especially when set -e interferes!  So, just save that $? ourselves
+# and show it clearly in --debug / set -x mode.
+trap 'exit_handler $?' EXIT
+exit_handler()
+{
+	# 42 "breadcrumb" if forgotten and missing
+	local err="${1-42}"
+	# "set -e" can trigger _twice_ and abort the EXIT handler again!
+	#   https://unix.stackexchange.com/questions/667368/bash-change-exit-status-in-trap
+	# So, don't let some cleanup failure hide the real $err:
+	cleanup || true
+	exit "$err"
+}
 
 set_topology()
 {
