@@ -1,0 +1,11 @@
+[Output]
+Output=@ROOT_FS@
+
+[Content]
+# ESP partition. Note some mkosi versions default to the unpredictable
+# "auto" with changing behavior; for instance mkosi v22 behaved differently
+# after innocent-looking commit b68a3ff10fb95.
+#
+# Also: mkosi v15 moved Bootable from "Output" to "Content" (commits
+# 6170991739c and ee57d6cb51d7)
+Bootable=yes
