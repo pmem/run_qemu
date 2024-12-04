@@ -54,6 +54,9 @@ jobs:
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
           sudo apt install -y dracut-core qemu-utils
+          if test '${{ matrix.cfg.os }}' = 'ubuntu-24.04'; then
+             sudo apt install -y systemd-ukify systemd-boot
+          fi
 
       # argbash. TODO: mixing generated code and sources in the same git
       # repo is generally a bad idea but this particular one changes
