@@ -943,15 +943,49 @@ make_rootfs()
 	# initialize mkosi configuration
 	mkdir -p mkosi.cache
 	mkdir -p mkosi.builddir
-	process_mkosi_template "${script_dir}"/mkosi.generic.conf.tmpl > mkosi.conf
-	process_mkosi_template "${script_dir}"/mkosi.${distro}.default.tmpl >> mkosi.conf
 
-	# This depends on the [Content] section being last
-	printf '\nPassword=%s\n' "${rootpw}" >> mkosi.conf
+	# mkosi version 15 broke backwards-compatibility greatly.  Fortunately,
+	# the location of configuration files was renamed around the same
+	# time. Leverage this to generate different configurations in different
+	# directories.
+	#
+	# Note we must NOT generate both directories at the same time because
+	# mkosi v14 reads *BOTH* subdirectories! - while supporting only
+	# old-style configuration data. Support for 'mkosi.conf.d/*.conf' was
+	# added by mkosi v14 commit 7b9bd98d15c0 but this was not documented in
+	# v14. Significantly later, support for 'mkosi.default.d/*' was silently
+	# removed by giant mkosi v15 commit e1bbc39754ef "Rework configuration
+	# parsing" and the documentation was switched to `mkosi.conf.d/*.conf` in
+	# v15.
+	local conf_d=mkosi.conf.d
+	if test "$mkosi_ver" -lt 15; then
+		conf_d=mkosi.default.d
+	fi
+	rm -rf mkosi.default.d/ mkosi.conf.d/
+	mkdir "$conf_d"
+	# Better safe than sorry
+	rm -f mkosi.conf mkosi.default
 
-	# Backwards compatibility with mkosi v14 and below
-	rm -f mkosi.default
-	ln mkosi.conf mkosi.default
+	# Various mkosi versions have introduced various, advanced configuration
+	# features like: - mkosi.profiles/; - [Match] filters; - [Include]
+	# files; per-arch subdirectories;... Resist using them unless you want
+	# to spend a lot of time validating a large range of mkosi versions one
+	# by one.
+
+	local tmpl dst_base
+	for tmpl in mkosi.generic.conf.tmpl mkosi.${distro}.default.tmpl; do
+		# Strip all suffixes
+		dst_base=${tmpl%.tmpl}
+		dst_base=${dst_base%.conf}
+		dst_base=${dst_base%.default}
+		# Unlike `mkosi.conf.d/*.conf`, `mkosi.default.d/*` files can
+		# have any name. This was a classic design mistake (think
+		# accidents with *~ and other backup files) but since we're
+		# generating these the risk is very low for us.
+		process_mkosi_template "$script_dir/$tmpl" > "$conf_d/$dst_base".conf
+	done
+
+	printf '\n[Content]\nPassword=%s\n' "${rootpw}" > "$conf_d"/password.conf
 
 	# misc rootfs setup
 	mkdir -p mkosi.extra/root/.ssh
