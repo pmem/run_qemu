@@ -1332,8 +1332,6 @@ prepare_qcmd()
 
 	pushd "$builddir" > /dev/null || exit 1
 
-	get_ovmf_binaries
-
 	if [[ ! $kver ]] && [[ $_arg_kver ]]; then
 		kver="$_arg_kver"
 	fi
@@ -1495,6 +1493,8 @@ prepare_qcmd()
 start_qemu()
 {
 	pushd "$builddir" > /dev/null || exit 1
+
+	get_ovmf_binaries
 
 	if [[ $_arg_log ]]; then
 		if (( _arg_quiet < 3 )); then
