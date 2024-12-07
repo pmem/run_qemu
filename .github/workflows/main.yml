@@ -55,6 +55,12 @@ jobs:
           sudo apt install -y mkosi # this one pulls A LOT
           sudo apt install -y dracut-core qemu-utils ovmf mtools
 
+      - name: mkosi v20 fixes
+        if: matrix.cfg.os  == 'ubuntu-24.04'
+        run: |
+          cd /usr/lib/python3/dist-packages
+          sudo git apply "${{ github.workspace }}"/run_qemu/Patches/ubuntu/24.04/mkosi/*.patch
+
       - name: apt get Ubuntu 24 requirements
         if: matrix.cfg.os  == 'ubuntu-24.04'
         run: |
