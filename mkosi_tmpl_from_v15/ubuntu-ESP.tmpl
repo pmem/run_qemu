@@ -1,0 +1,12 @@
+# TODO: move this file into some Ubuntu-specific directory and drop the
+# "Distribution=" line.
+
+[Match]
+Distribution=ubuntu
+Release=|noble
+Release=|oracular
+
+# Some mkosi versions do not automatically download this, even when Bootable=yes
+[Content]
+Packages=
+  systemd-boot

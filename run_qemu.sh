@@ -574,7 +574,12 @@ mount_rootfs()
 	pushd "$builddir" > /dev/null || exit 1
 	test -s "$_arg_rootfs"
 	mkdir -p "$mp"
+
 	sudo losetup -Pf "$_arg_rootfs"
+	# The -P scan is performed in the background (this can be observed with a simple
+	# 'ls -l /dev/disk/by-loop-ref/')
+	sleep 2
+
 	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
@@ -728,9 +733,15 @@ update_rootfs_boot_kernel()
 
 	mount_rootfs 1 # EFI system partition
 	conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
+
+	sudo sfdisk -l "${loopdev}" || sudo parted "${loopdev}" print || true
+
 	root_partuuid="$(sudo blkid "${loopdev}p2" -o export | awk -F'=' '/^PARTUUID/{ print $2 }')"
 	if [[ ! $root_partuuid ]]; then
-		fail "Unable to determine root partition UUID"
+		sudo losetup --list
+		ls -l /dev/disk/by-loop-ref/ || true
+		sudo blkid "${loopdev}p2" -o export || true
+		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
 	fi
 
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
@@ -950,6 +961,7 @@ process_mkosi_template()
 		-e "s:@OS_RELEASE@:${rev}:" \
 		-e "s:@ESP_SIZE@:${espsize}:" \
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
+		-e "s:@ROOT_PASS@:${rootpw}:" \
 		-e "s:@ROOT_FS@:${_arg_rootfs}:" \
 		"$src"
 }
@@ -990,20 +1002,31 @@ make_rootfs()
 	# to spend a lot of time validating a large range of mkosi versions one
 	# by one.
 
+	local mkosi_ver_d=mkosi_tmpl_from_v15
+	if test "$mkosi_ver" -lt 15; then
+		mkosi_ver_d=mkosi_tmpl_upto_v14
+	fi
+
 	local tmpl dst_base
-	for tmpl in mkosi.generic.conf.tmpl mkosi.${distro}.default.tmpl; do
+	for tmpl in "${script_dir}/${mkosi_ver_d}"/*.tmpl \
+		    "${script_dir}"/mkosi_tmpl_portable/*.tmpl \
+		    "${script_dir}"/mkosi.${distro}.default.tmpl; do
+		dst_base=$(basename "${tmpl}")
 		# Strip all suffixes
-		dst_base=${tmpl%.tmpl}
+		dst_base=${dst_base%.tmpl}
 		dst_base=${dst_base%.conf}
 		dst_base=${dst_base%.default}
 		# Unlike `mkosi.conf.d/*.conf`, `mkosi.default.d/*` files can
 		# have any name. This was a classic design mistake (think
 		# accidents with *~ and other backup files) but since we're
 		# generating these the risk is very low for us.
-		process_mkosi_template "$script_dir/$tmpl" > "$conf_d/$dst_base".conf
+		local dst="$conf_d/$dst_base".conf
+		if test -e "$dst"; then
+			fail 'Cannot process %s\n\tbecause %s already exists - name clash?\n' \
+				"$tmpl" "$dst"
+		fi
+		process_mkosi_template "$tmpl" > "$dst"
 	done
-
-	printf '\n[Content]\nPassword=%s\n' "${rootpw}" > "$conf_d"/password.conf
 
 	# misc rootfs setup
 	mkdir -p mkosi.extra/root/.ssh
