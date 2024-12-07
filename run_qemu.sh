@@ -574,7 +574,12 @@ mount_rootfs()
 	pushd "$builddir" > /dev/null || exit 1
 	test -s "$_arg_rootfs"
 	mkdir -p "$mp"
+
 	sudo losetup -Pf "$_arg_rootfs"
+	# The -P scan is performed in the background (this can be observed with a simple
+	# 'ls -l /dev/disk/by-loop-ref/')
+	sleep 2
+
 	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
