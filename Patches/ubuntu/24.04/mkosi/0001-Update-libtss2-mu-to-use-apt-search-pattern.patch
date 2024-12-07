@@ -1,0 +1,27 @@
+From 7637bcaf654a2d124f64e263c7c628941090e2f3 Mon Sep 17 00:00:00 2001
+From: Daan De Meyer <daan.j.demeyer@gmail.com>
+Date: Mon, 5 Feb 2024 10:41:42 +0100
+Subject: [PATCH] Update libtss2-mu to use apt search pattern
+
+This package changed name so let's update to use a search pattern
+to always pull in the right package.
+---
+ mkosi/resources/mkosi-initrd/mkosi.conf.d/10-debian-ubuntu.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mkosi/resources/mkosi-initrd/mkosi.conf.d/10-debian-ubuntu.conf b/mkosi/resources/mkosi-initrd/mkosi.conf.d/10-debian-ubuntu.conf
+index 82d844fc..3fbd8737 100644
+--- a/mkosi/resources/mkosi-initrd/mkosi.conf.d/10-debian-ubuntu.conf
++++ b/mkosi/resources/mkosi-initrd/mkosi.conf.d/10-debian-ubuntu.conf
+@@ -19,7 +19,7 @@ Packages=
+         libfido2-1
+         ^libtss2-esys-[0-9\.]+-0$
+         libtss2-rc0
+-        libtss2-mu0
++        ^libtss2-mu[0-9\.-]+$
+         libtss2-tcti-device0
+ 
+ RemovePackages=
+-- 
+2.43.0
+
