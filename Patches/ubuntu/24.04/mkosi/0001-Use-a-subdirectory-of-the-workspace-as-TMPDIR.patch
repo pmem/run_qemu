@@ -1,0 +1,29 @@
+From d94ae85d858b332961283de504525587c1f6feb4 Mon Sep 17 00:00:00 2001
+From: Daan De Meyer <daan.j.demeyer@gmail.com>
+Date: Wed, 24 Jan 2024 09:58:26 +0100
+Subject: [PATCH] Use a subdirectory of the workspace as TMPDIR
+
+Let's properly distinguish temporary files from workspace files by
+putting the temporary files in a subdirectory of the workspace.
+---
+ mkosi/__init__.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mkosi/__init__.py b/mkosi/__init__.py
+index 6c64610b..21f09a86 100644
+--- a/mkosi/__init__.py
++++ b/mkosi/__init__.py
+@@ -2844,8 +2844,9 @@ def setup_workspace(args: Args, config: Config) -> Iterator[Path]:
+             options=["--bind", config.workspace_dir_or_default(), config.workspace_dir_or_default()],
+         )
+         stack.callback(lambda: rmtree(workspace, sandbox=sandbox))
++        (workspace / "tmp").mkdir(mode=0o1777)
+ 
+-        with scopedenv({"TMPDIR" : os.fspath(workspace)}):
++        with scopedenv({"TMPDIR" : os.fspath(workspace / "tmp")}):
+             try:
+                 yield Path(workspace)
+             except BaseException:
+-- 
+2.43.0
+
