@@ -574,7 +574,12 @@ mount_rootfs()
 	pushd "$builddir" > /dev/null || exit 1
 	test -s "$_arg_rootfs"
 	mkdir -p "$mp"
+
 	sudo losetup -Pf "$_arg_rootfs"
+	# The -P scan is performed in the background (this can be observed with a simple
+	# 'ls -l /dev/disk/by-loop-ref/')
+	sleep 2
+
 	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
@@ -728,9 +733,15 @@ update_rootfs_boot_kernel()
 
 	mount_rootfs 1 # EFI system partition
 	conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
+
+	sudo sfdisk -l "${loopdev}" || sudo parted "${loopdev}" print || true
+
 	root_partuuid="$(sudo blkid "${loopdev}p2" -o export | awk -F'=' '/^PARTUUID/{ print $2 }')"
 	if [[ ! $root_partuuid ]]; then
-		fail "Unable to determine root partition UUID"
+		sudo losetup --list
+		ls -l /dev/disk/by-loop-ref/ || true
+		sudo blkid "${loopdev}p2" -o export || true
+		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
 	fi
 
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
