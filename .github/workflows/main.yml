@@ -90,6 +90,16 @@ jobs:
         run: cd kernel &&
           make defconfig ARCH=${{ matrix.arch }}
 
+      - name: disable AppArmor
+        run: |
+          # Bubblewrap needs this for RTM_NEWADDR. This may not be required in
+          # this GitHub runner/container but it's still useful as "documentation"
+          # https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces
+          if test -e /proc/sys/kernel/apparmor_restrict_unprivileged_unconfined; then
+                    sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
+                    sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+
       - name: build
         run: |
           mkosi --version
