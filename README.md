@@ -13,14 +13,15 @@ You can also git clone https://github.com/systemd/mkosi, symlink to
 `mkosi.git/bin/mkosi` and run mkosi directly from source. This works out of the box
 with git tags v15 and above. `mkosi/README.md` offers other installation methods.
 
-## Fedora 39+ Notes
+## mkosi v15+ (Fedora 39+)
 
-Fedora 39 updates mkosi to 15 (and later) which contains a lot of breaking changes,
-and indeed breaks various expectations with run_qemu's usage of it.
+Fedora 39 updated mkosi to v15 or higher which contained a lot of breaking changes,
+and indeed broke various expectations with run_qemu's usage of it. Basic
+run_qemu.sh features are now functional with both mkosi v14- and mkosi v15+ but
+please report any bug.
 
 Fedora 39 and 40 have packaged mkosi 14 separately and in parallel to the latest mkosi.
-Uninstall the default mkosi package, and install 'mkosi14' to continue using run_qemu
-on Fedora 39 and 40:
+If you want to keep using mkosi v14 on Fedora 39 or 40:
 
 ```
 # dnf remove --noautoremove mkosi
@@ -28,6 +29,8 @@ on Fedora 39 and 40:
 ```
 
 Fedora 41 has stopped packaging mkosi14.
+
+See longer mkosi section below.
 
 # Installation
  - symlink the `run_qemu.sh` script into somewhere in your `PATH`
@@ -130,3 +133,24 @@ lspci  | grep '3[45]:00'
 readlink -f /sys/bus/cxl/devices/mem0
 /sys/devices/pci0000:34/0000:34:00.0/0000:35:00.0/mem0
 ```
+
+# mkosi
+
+mkosi version 15 made a lot of backwards incompatible changes. Fortunately,
+the location of configuration files changed at the same time. So `run_qemu.sh`
+creates different configuration folder depending on which mkosi version is
+detected: `qbuild/mkosi.default.d/*.conf` for version 14 and before, resp.
+`qbuild/mkosi.conf.d/*.conf` for version 15 and above.
+
+While no such major break of backwards compatibility has happened after v15
+(yet?), features are being added regularly. Various Linux distributions come
+with various mkosi versions. So try to keep mkosi configuration(s) as simple as
+possible to avoid accidentally breaking someone else using a different mkosi
+version. Rely on default values as much as possible.
+
+Fortunately, most mkosi versions are thoroughly documented and you can
+easily check the documentation of any version without installing anything.
+For versions 14 and before, use this syntax:
+  https://github.com/systemd/mkosi/blob/v14/man/mkosi.1
+For versions 15 and above go to:
+  https://github.com/systemd/mkosi/blob/v15/mkosi/resources/mkosi.md
