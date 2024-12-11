@@ -502,7 +502,7 @@ __build_kernel()
 	fi
 
 	if (( _arg_quiet >= 1 )); then
-		install_build_initrd > /dev/null 2>&1
+		install_build_initrd > /dev/null
 	else
 		install_build_initrd
 	fi
@@ -1106,7 +1106,7 @@ make_rootfs()
 		echo "running: sudo -E $mkosi_bin ${mkosi_opts[*]}"
 	fi
 	if (( _arg_quiet >= 1 )); then
-		sudo -E "$mkosi_bin" "${mkosi_opts[@]}" > /dev/null 2>&1
+		sudo -E "$mkosi_bin" "${mkosi_opts[@]}" > /dev/null
 	else
 		sudo -E "$mkosi_bin" "${mkosi_opts[@]}"
 	fi
