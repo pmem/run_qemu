@@ -572,8 +572,11 @@ get_loopdev()
 	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
 	num_loopdev="$(wc -l <<< "$loopdev")"
 	if (( num_loopdev != 1 )); then
+		{ lsblk -f || true
+		sudo losetup --list
 		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
 		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
+		} >&2
 		exit 1
 	fi
 	test -b "$loopdev" || fail "%s is not a block device" "$loopdev"
