@@ -565,6 +565,21 @@ setup_autorun()
 	ln -sfr "$prefix/$systemd_dir/rq-custom.target" "$prefix/$systemd_dir/default.target"
 }
 
+get_loopdev()
+{
+	local loopdev num_loopdev
+
+	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	num_loopdev="$(wc -l <<< "$loopdev")"
+	if (( num_loopdev != 1 )); then
+		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
+		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
+		exit 1
+	fi
+	test -b "$loopdev" || fail "%s is not a block device" "$loopdev"
+	printf '%s' "$loopdev"
+}
+
 # mount_rootfs <partnum>
 mount_rootfs()
 {
@@ -580,15 +595,9 @@ mount_rootfs()
 	# 'ls -l /dev/disk/by-loop-ref/')
 	sleep 2
 
-	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	num_loopdev="$(wc -l <<< "$loopdev")"
-	if (( num_loopdev != 1 )); then
-		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
-		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
-		exit 1
-	fi
+	loopdev=$(get_loopdev)
 	looppart="${loopdev}p${partnum}"
-	test -b "$loopdev"
+
 	sleep 1
 	sudo mount "$looppart" "$mp"
 	popd > /dev/null || exit 1 # back to kernel tree
@@ -600,15 +609,9 @@ umount_rootfs()
 	partnum="$1"
 	mp="mnt"
 
-	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	num_loopdev="$(wc -l <<< "$loopdev")"
-	if (( num_loopdev != 1 )); then
-		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
-		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
-		exit 1
-	fi
+	loopdev=$(get_loopdev "$partnum")
 	looppart="${loopdev}p${partnum}"
-	test -b "$loopdev"
+
 	sync
 	sleep 5
 	sudo umount "$looppart"
