@@ -863,9 +863,9 @@ __update_existing_rootfs()
 	fi
 
 	if [[ $_arg_ndctl_build == "on" ]]; then
-		ndctl_dst="$inst_prefix/root/ndctl"
-		if [ -d "$ndctl" ] && [ -d "$ndctl_dst" ]; then
-			rsync "${rsync_opts[@]}" "$ndctl/" "$ndctl_dst"
+		if [ -n "$ndctl" ] && [ -f "$ndctl/meson.build" ]; then
+			>&2 printf '\n%s\n\n' \
+'WARNING: --ndctl-build ignored when updating existing image! Outdated ndctl in the image. Try adding "-r img"'
 		fi
 	fi
 
