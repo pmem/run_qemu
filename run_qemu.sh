@@ -937,9 +937,6 @@ prepare_ndctl_build()
 	cat <<- EOF > mkosi.postinst
 		#!/bin/bash -ex
 
-		if [[ ! -d /root/ndctl ]]; then
-			exit 0
-		fi
 		pushd /root/ndctl
 		rm -rf build
 		meson setup build
@@ -1072,8 +1069,8 @@ make_rootfs()
 	if [[ $_arg_ndctl_build == "on" ]]; then
 		if [ -n "$ndctl" ]; then
 			rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
+			prepare_ndctl_build # create mkosi.postinst which compiles
 		fi
-		prepare_ndctl_build
 	fi
 	if [ -f /etc/localtime ]; then
 		mkdir -p mkosi.extra/etc/
