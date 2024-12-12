@@ -1063,6 +1063,7 @@ make_rootfs()
 		if [ -d "$ndctl" ]; then
 			rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
 		fi
+		prepare_ndctl_build
 	fi
 	if [ -f /etc/localtime ]; then
 		mkdir -p mkosi.extra/etc/
@@ -1090,10 +1091,6 @@ make_rootfs()
 
 	setup_depmod "mkosi.extra"
 	setup_autorun "mkosi.extra"
-
-	if [[ $_arg_ndctl_build == "on" ]]; then
-		prepare_ndctl_build
-	fi
 
 	if [[ $_arg_gcp == "off" ]]; then
 		mkosi_opts+=("--autologin")
