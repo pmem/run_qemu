@@ -407,6 +407,8 @@ process_options_logic()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg"
 	fi
+
+	check_ndctl_dir
 }
 
 make_install_kernel()
@@ -922,6 +924,14 @@ setup_network()
 	EOF
 }
 
+check_ndctl_dir()
+{
+	if [ -n "$ndctl" ]; then
+		[ -f "$ndctl/meson.build" ] ||
+		    fail 'ndctl="%s" is not a valid source directory\n' "$ndctl"
+	fi
+}
+
 prepare_ndctl_build()
 {
 	cat <<- EOF > mkosi.postinst
@@ -1060,7 +1070,7 @@ make_rootfs()
 		rsync "${rsync_opts[@]}" ~/git/extra-scripts/bin/* mkosi.extra/root/bin/
 	fi
 	if [[ $_arg_ndctl_build == "on" ]]; then
-		if [ -d "$ndctl" ]; then
+		if [ -n "$ndctl" ]; then
 			rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
 		fi
 		prepare_ndctl_build
