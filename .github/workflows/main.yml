@@ -35,7 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl]
+        run_opts: [--cxl --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +79,12 @@ jobs:
           sudo apt install -y autoconf
           sudo make -C argbash-${AB_VER}/resources install PREFIX=/usr/local/
 
+      - name: download ndctl
+        uses: actions/checkout@v4
+        with:
+          repository: pmem/ndctl
+          path: ndctl
+
       - name: download kernel
         uses: actions/checkout@v4
         with:
@@ -105,6 +111,7 @@ jobs:
           mkosi --version
           cd kernel
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
+                 ndctl='${{ github.workspace }}'/ndctl \
                  ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
 
       # TODO: drop --no-run thanks to "nested KVM" or something?
