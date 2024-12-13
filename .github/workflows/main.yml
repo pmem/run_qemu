@@ -49,7 +49,7 @@ jobs:
           sudo apt-get update
 
           # Kernel deps
-          sudo apt install -y build-essential flex bison libelf-dev libssl-dev
+          sudo apt install -y build-essential flex bison libelf-dev libssl-dev ccache
 
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
@@ -87,11 +87,38 @@ jobs:
           path: ndctl
 
       - name: download kernel
+        id: kernel_checkout
         uses: actions/checkout@v4
         with:
           repository: torvalds/linux
           ref: v6.12
           path: kernel
+
+      - name: set week number for ccache
+        id: weeks
+        run: |
+          printf 'now=%s\n' "$(date +%Y-w%U)" >> "$GITHUB_OUTPUT"
+          printf 'previous=%s\n' "$(date +%Y-w%U -d '7 days ago')" >> "$GITHUB_OUTPUT"
+
+      # Note there is "Caches" section in Actions->Management
+      - name: ccache
+        uses: actions/cache@v4
+        with:
+          # 'CCACHE_DIR' in https://manpages.ubuntu.com/manpages/noble/man1/ccache.1.html
+          # Max GitHub storage for this is 10G. Dunno what happens if a
+          # _single_ cache entry/key is bigger than 10G? ccache max_size is
+          # 5G, so we're good. Typical kernel compilation seems to use ~1G?
+          path: ~/.cache/ccache/
+
+          # The kernel takes MUCH longer than ndctl or anything else, so
+          # index the cache only based on the kernel version to keep
+          # things simple.  But: invalidate and refresh .ccache weekly
+          # to regularly adjust to any .config, toolchain, ndctl, .dpkg
+          # upgrade or any other escaping change.
+          key: ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.now }}
+          # Don't start new week from scratch if available
+          restore-keys: |
+            ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.previous }}
 
       - name: defconfig
         run: cd kernel &&
@@ -109,10 +136,20 @@ jobs:
 
       - name: build
         run: |
+          set -x
           mkosi --version
+          ccache --show-stats
           cd kernel
+          PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
                  ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
+
+      - name: ccache stats post build
+        run: |
+          # Pre-build stats printed at the start of the build step
+          set -x
+          ccache --show-stats
+          ccache --show-config | grep dir
 
       # TODO: drop --no-run thanks to "nested KVM" or something?
