@@ -100,8 +100,12 @@ jobs:
           printf 'now=%s\n' "$(date +%Y-w%U)" >> "$GITHUB_OUTPUT"
           printf 'previous=%s\n' "$(date +%Y-w%U -d '7 days ago')" >> "$GITHUB_OUTPUT"
 
-      # Note there is "Caches" section in Actions->Management
-      - name: ccache
+      # Warning: there are relatively complex rules that restrict caching
+      # across branches and pull requests.  These will cause apparent
+      # "duplicates" to appear in the "Caches" section in
+      # Actions->Management. Caching will always work inside a pull request.
+      # A daily run would probably be enough to "seed" all pull requests.
+      - name: Fetch ccache
         uses: actions/cache@v4
         with:
           # 'CCACHE_DIR' in https://manpages.ubuntu.com/manpages/noble/man1/ccache.1.html
@@ -116,9 +120,11 @@ jobs:
           # to regularly adjust to any .config, toolchain, ndctl, .dpkg
           # upgrade or any other escaping change.
           key: ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.now }}
-          # Don't start new week from scratch if available
+          # Don't start new week from scratch
           restore-keys: |
             ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.previous }}
+            ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}
+            ${{ matrix.cfg.os }}_${{ matrix.arch }}
 
       - name: defconfig
         run: cd kernel &&
