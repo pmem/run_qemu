@@ -116,9 +116,11 @@ jobs:
           # to regularly adjust to any .config, toolchain, ndctl, .dpkg
           # upgrade or any other escaping change.
           key: ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.now }}
-          # Don't start new week from scratch if available
+          # Don't start new week from scratch
           restore-keys: |
             ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}_${{ steps.weeks.outputs.previous }}
+            ${{ matrix.cfg.os }}_${{ matrix.arch }}_${{ steps.kernel_checkout.outputs.ref }}
+            ${{ matrix.cfg.os }}_${{ matrix.arch }}
 
       - name: defconfig
         run: cd kernel &&
