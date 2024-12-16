@@ -15,8 +15,6 @@ pmem_label_size=2  #in MiB
 pmem_final_size="$((pmem_size + pmem_label_size))"
 : "${qemu:=qemu-system-x86_64}"
 : "${gdb:=gdb}"
-: "${distro:=fedora}"
-: "${rev:=40}"
 : "${ndctl:=$(readlink -f ~/git/ndctl)}"
 selftests_home=root/built-selftests
 mkosi_bin="mkosi"
@@ -111,8 +109,34 @@ cxl_results_script="$script_dir/scripts/rq_cxl_results.sh"
 nfit_test_script="$script_dir/scripts/rq_nfit_tests.sh"
 nfit_results_script="$script_dir/scripts/rq_nfit_results.sh"
 
+# /etc/os-release is what mkosi "detect_distribution()" uses too.
+get_os()
+{
+    awk -F= 'BEGIN  { notfound=1 }
+             /^ID=/ { print $2; notfound=0; exit }
+             END    { exit notfound }'     /etc/os-release
+}
+
+# distro:  if any, user input passed to mkosi configuration line: "Distribution=$distro"
+# rev:     if any, user input passed to mkosi configuration line: "Release=$rev"
+# _distro: variable private to this script. Defaults to build OS like mkosi does.
+if [ -n "$distro" ]; then
+    _distro=${distro}
+    distribution_def="Distribution=$distro"
+else
+    _distro=$(get_os)
+    distribution_def=''
+fi
+
+if [ -n "$rev" ]; then
+    release_def="Release=$rev"
+else
+    release_def=''
+fi
+
 # distro specific variables
-distro_vars="${script_dir}/${distro}_vars.sh"
+distro_vars="${script_dir}/${_distro}_vars.sh"
+
 # shellcheck source=fedora_vars.sh
 # shellcheck source=arch_vars.sh
 # shellcheck source=ubuntu_vars.sh
@@ -754,7 +778,7 @@ update_rootfs_boot_kernel()
 
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
 	sudo tee "$conffile" > /dev/null <<- EOF
-		title run-qemu-$distro ($kver)
+		title run-qemu-$_distro ($kver)
 		version $kver
 		source /efi/EFI/Linux/linux-$kver.efi
 		linux EFI/Linux/linux-$kver.efi
@@ -975,8 +999,8 @@ process_mkosi_template()
 	       "$0" "$src" "$(date)" "$( "$mkosi_bin" --version )"
 
 	sed \
-		-e "s:@OS_DISTRO@:${distro}:" \
-		-e "s:@OS_RELEASE@:${rev}:" \
+		-e "s:@OS_DISTRIBUTION_DEF@:${distribution_def}:" \
+		-e "s:@OS_RELEASE_DEF@:${release_def}:" \
 		-e "s:@ESP_SIZE@:${espsize}:" \
 		-e "s:@ROOT_SIZE@:${rootfssize}:" \
 		-e "s:@ROOT_PASS@:${rootpw}:" \
@@ -1028,7 +1052,7 @@ make_rootfs()
 	local tmpl dst_base
 	for tmpl in "${script_dir}/${mkosi_ver_d}"/*.tmpl \
 		    "${script_dir}"/mkosi_tmpl_portable/*.tmpl \
-		    "${script_dir}"/mkosi.${distro}.default.tmpl; do
+		    "${script_dir}"/mkosi.${_distro}.default.tmpl; do
 		dst_base=$(basename "${tmpl}")
 		# Strip all suffixes
 		dst_base=${dst_base%.tmpl}
@@ -1056,7 +1080,7 @@ make_rootfs()
 	done > mkosi.extra/root/.ssh/authorized_keys
 	chmod -R go-rwx mkosi.extra/root
 
-	rootfs_script="${script_dir}/${distro}_rootfs.sh"
+	rootfs_script="${script_dir}/${_distro}_rootfs.sh"
 	# shellcheck source=fedora_rootfs.sh
 	# shellcheck source=arch_rootfs.sh
 	[ -f "$rootfs_script" ] && source "$rootfs_script" mkosi.extra/
@@ -1262,7 +1286,7 @@ get_ovmf_binaries()
 		rm -f OVMF_*.fd
 	fi
 	if [[ ! $ovmf_path ]]; then
-		echo "Unable to determine OVMF path for $distro"
+		echo "Unable to determine OVMF path for $_distro"
 		exit 1
 	fi
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
