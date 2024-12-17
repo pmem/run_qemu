@@ -400,7 +400,7 @@ process_options_logic()
 	fi
 	if [[ $_arg_timeout -gt 0 ]]; then
 		if [[ ! -x "$qmp" ]]; then
-			fail "--timeout requires 'qmp'. $qmp not found"
+			fail " --timeout requires 'qmp'. $qmp not found"
 		fi
 		_arg_qmp="on"
 	fi
