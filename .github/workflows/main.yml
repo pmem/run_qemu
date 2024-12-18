@@ -180,6 +180,14 @@ jobs:
                  ndctl='${{ github.workspace }}'/ndctl \
                  ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm
 
+      #  Test update_existing_rootfs(), default value for distro= and various other things
+      - name: incremental build
+        run: |
+          set -x
+          cd kernel
+          ndctl='${{ github.workspace }}'/ndctl \
+          ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
+
       - name: ccache stats post build
         run: |
           # Pre-build stats printed at the start of the build step
