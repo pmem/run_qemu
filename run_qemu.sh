@@ -15,7 +15,7 @@ pmem_label_size=2  #in MiB
 pmem_final_size="$((pmem_size + pmem_label_size))"
 : "${qemu:=qemu-system-x86_64}"
 : "${gdb:=gdb}"
-: "${ndctl:=$(readlink -f ~/git/ndctl)}"
+: "${ndctl=$(readlink -f ~/git/ndctl)}"
 selftests_home=root/built-selftests
 mkosi_bin="mkosi"
 mkosi_opts=("-i" "-f")
@@ -431,8 +431,9 @@ process_options_logic()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg"
 	fi
-
-	check_ndctl_dir
+	if [[ $_arg_ndctl_build == "on" ]]; then
+		check_ndctl_dir
+	fi
 }
 
 make_install_kernel()
