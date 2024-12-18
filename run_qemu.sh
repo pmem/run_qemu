@@ -910,8 +910,12 @@ __update_existing_rootfs()
 		sudo rm -rf "$selftests_dir"
 	fi
 
-	sudo -E bash -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
-	sudo -E bash -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
+	if [[ $_arg_debug == 'on' ]]; then
+	    local _trace_sh='-x'
+	fi
+	sudo -E bash $_trace_sh -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
+	sudo -E bash $_trace_sh -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
+
 	umount_rootfs 2
 }
 
