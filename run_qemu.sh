@@ -439,10 +439,10 @@ make_install_kernel()
 {
 	local inst_path="$1"
 
-	cat arch/x86_64/boot/bzImage > $inst_path/vmlinuz-$kver
-	cp System.map $inst_path/System.map-$kver
-	ln -fs $inst_path/vmlinuz-$kver $inst_path/vmlinuz
-	ln -fs $inst_path/System.map-$kver $inst_path/System.map
+	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	cp System.map "$inst_path"/System.map-"$kver"
+	ln -fs "$inst_path"/vmlinuz-"$kver" "$inst_path"/vmlinuz
+	ln -fs "$inst_path"/System.map-"$kver" "$inst_path"/System.map
 }
 
 install_build_initrd()
@@ -520,7 +520,7 @@ __build_kernel()
 
 	if [[ $_arg_kern_selftests == "on" ]]; then
 		selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
-		make $quiet -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+		make $quiet -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH="$selftests_dir"
 	fi
 
 	if [[ $_arg_gdb == "on" ]]; then
@@ -854,6 +854,8 @@ setup_depmod()
 		echo "not found: $system_map. Try rebuilding with '-r img'"
 		return 1
 	fi
+	: Warning: symlinks created by this depmod do not survive the move
+	: to the virtual machine
 	sudo depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
 
@@ -903,7 +905,7 @@ __update_existing_rootfs()
 
 	selftests_dir=$(readlink -f "$inst_prefix")/$selftests_home
 	if [[ $_arg_kern_selftests == "on" ]]; then
-		sudo make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH=$selftests_dir
+		sudo make -j"$num_build_cpus" -C tools/testing/selftests install INSTALL_PATH="$selftests_dir"
 	else
 		sudo rm -rf "$selftests_dir"
 	fi
