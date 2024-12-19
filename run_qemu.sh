@@ -890,7 +890,11 @@ __update_existing_rootfs()
 	fi
 	sudo make "$mod_inst_param" $ims modules_install
 	sudo make INSTALL_HDR_PATH="$inst_prefix/usr" headers_install
-	sudo -E bash -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
+
+	if [[ $_arg_debug == 'on' ]]; then
+	    local _trace_sh='-x'
+	fi
+	sudo -E bash $_trace_sh -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
@@ -910,9 +914,6 @@ __update_existing_rootfs()
 		sudo rm -rf "$selftests_dir"
 	fi
 
-	if [[ $_arg_debug == 'on' ]]; then
-	    local _trace_sh='-x'
-	fi
 	sudo -E bash $_trace_sh -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
 	sudo -E bash $_trace_sh -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
 
