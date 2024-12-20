@@ -894,7 +894,7 @@ __update_existing_rootfs()
 	if [[ $_arg_debug == 'on' ]]; then
 	    local _trace_sh='-x'
 	fi
-	sudo -E bash $_trace_sh -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
+	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
