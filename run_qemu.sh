@@ -439,6 +439,11 @@ make_install_kernel()
 {
 	local inst_path="$1"
 
+	test -n "$kver" || { # can't use fail() when inlined with declare -f
+		>&2 printf 'ERROR: Undefined $kver in make_install_kernel()\n'
+		exit 1
+	}
+
 	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs "$inst_path"/vmlinuz-"$kver" "$inst_path"/vmlinuz
@@ -894,7 +899,7 @@ __update_existing_rootfs()
 	if [[ $_arg_debug == 'on' ]]; then
 	    local _trace_sh='-x'
 	fi
-	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel); make_install_kernel $inst_path"
+	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel); kver=$kver make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
