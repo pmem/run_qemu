@@ -647,7 +647,6 @@ umount_rootfs()
 	looppart="${loopdev}p${partnum}"
 
 	sync
-	sleep 5
 	sudo umount "$looppart"
 	sudo rm -rf "$mp"
 	sudo losetup -d "$loopdev"
