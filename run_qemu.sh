@@ -1470,6 +1470,7 @@ prepare_qcmd()
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
 	if [[ $_arg_legacy_bios == "off" ]] ; then
+		get_ovmf_binaries
 		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
 		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
@@ -1570,8 +1571,6 @@ start_qemu()
 {
 	pushd "$builddir" > /dev/null || exit 1
 
-	get_ovmf_binaries
-
 	if [[ $_arg_log ]]; then
 		if (( _arg_quiet < 3 )); then
 			printf "starting qemu. console output is logged to %s\n" "$_arg_log"
@@ -1642,8 +1641,8 @@ main()
 			;;
 	esac
 
-	prepare_qcmd
 	if [[ $_arg_run == "on" ]]; then
+		prepare_qcmd
 		start_qemu
 	fi
 	if [[ $_arg_post_script ]]; then
