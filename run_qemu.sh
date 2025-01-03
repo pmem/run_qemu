@@ -781,15 +781,16 @@ update_rootfs_boot_kernel()
 		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
 	fi
 
+	# Note there is no initrd when booting this way, root filesystem must be built-in.
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
 	sudo tee "$conffile" > /dev/null <<- EOF
 		title run-qemu-$_distro ($kver)
 		version $kver
-		linux EFI/Linux/linux-$kver.efi
+		linux run-qemu-kernel/$kver/vmlinuz
 		options ${kcmd[*]}
 	EOF
 	sudo mkdir -p "$builddir/mnt/run-qemu-kernel/$kver"
-	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/EFI/Linux/linux-$kver.efi"
+	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/run-qemu-kernel/$kver/vmlinuz"
 
 	defconf="$builddir/mnt/loader/loader.conf"
 	if [ -f "$defconf" ]; then
