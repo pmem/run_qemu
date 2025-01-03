@@ -799,6 +799,13 @@ update_rootfs_boot_kernel()
 		echo "timeout 4" | sudo tee "$defconf"
 	fi
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
+
+	# Fedora
+	sudo cp "$ovmf_path"/Shell.efi "$builddir"/mnt/shellx64.efi ||
+		# Arch Linux
+		sudo cp /usr/share/edk2-shell/x64/Shell_Full.efi "$builddir"/mnt/shellx64.efi ||
+		true
+
 	umount_rootfs 1
 
 	mount_rootfs 2 # Linux root partition
@@ -1302,7 +1309,7 @@ get_ovmf_binaries()
 	fi
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
 		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
-			echo "OVMF binaries not found, please install 'edk2-ovmf' or similar"
+			echo "OVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
 			exit 1
 		fi
 		cp "$ovmf_path/OVMF_CODE.fd" .
