@@ -809,7 +809,7 @@ update_rootfs_boot_kernel()
 	umount_rootfs 1
 
 	mount_rootfs 2 # Linux root partition
-	sudo ln -sf "$builddir/mnt/efi/run-qemu-kernel" "$builddir/mnt/boot/run-qemu-kernel"
+	sudo ln -sf "../efi/run-qemu-kernel" "$builddir/mnt/boot/run-qemu-kernel"
 	umount_rootfs 2
 }
 
