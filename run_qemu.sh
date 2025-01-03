@@ -446,8 +446,8 @@ make_install_kernel()
 
 	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
 	cp System.map "$inst_path"/System.map-"$kver"
-	ln -fs "$inst_path"/vmlinuz-"$kver" "$inst_path"/vmlinuz
-	ln -fs "$inst_path"/System.map-"$kver" "$inst_path"/System.map
+	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
+	ln -fs System.map-"$kver" "$inst_path"/System.map
 }
 
 install_build_initrd()
