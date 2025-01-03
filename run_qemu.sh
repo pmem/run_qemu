@@ -785,7 +785,6 @@ update_rootfs_boot_kernel()
 	sudo tee "$conffile" > /dev/null <<- EOF
 		title run-qemu-$_distro ($kver)
 		version $kver
-		source /efi/EFI/Linux/linux-$kver.efi
 		linux EFI/Linux/linux-$kver.efi
 		options ${kcmd[*]}
 	EOF
