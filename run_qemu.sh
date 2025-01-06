@@ -471,7 +471,6 @@ install_build_initrd()
 		--no-hostonly \
 		--show-modules \
 		--kver="$kver" \
-		--filesystems="xfs ext4" \
 		--kmoddir "$inst_prefix/lib/modules/$kver/" \
 		--kernel-image "./vmlinux" \
 		--add "bash systemd kernel-modules fs-lib" \
