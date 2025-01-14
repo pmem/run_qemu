@@ -12,7 +12,10 @@ trap cleanup EXIT
 sleep 4
 echo "======= auto-running $0 ========" > /dev/kmsg
 
-cd /root/ndctl || exit
+cd /root/ndctl || {
+    printf '<0> FATAL: %s: no /root/ndctl directory' "$0" > /dev/kmsg
+    exit 1
+}
 
 rm -rf build
 meson setup build 2>/dev/kmsg
