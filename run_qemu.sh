@@ -939,18 +939,32 @@ update_existing_rootfs()
 	fi
 }
 
-enable_systemd_service()
+systemd_preset()
 {
-	servicename="$1"
+	state="$1"
+	servicename="$2"
 
 	if [ ! -d "mkosi.extra" ]; then
 		fail "couldn't find mkosi.extra, are we in an unexpected CWD?"
 	fi
 
-	mkdir -p mkosi.extra/etc/systemd/system/multi-user.target.wants
+	local preset_dir=mkosi.extra/etc/systemd/system-preset/
+	mkdir -p "$preset_dir"
 
-	ln -sf "/usr/lib/systemd/system/${servicename}.service" \
-		"mkosi.extra/etc/systemd/system/multi-user.target.wants/${servicename}.service"
+	{
+		generatedfrom_header "preset_service $servicename"
+		cat <<EOFPRESET
+
+# Different distributions tend to have very different presets; override them all
+# with a low enough number.
+#
+# Note changes in *.preset files are ignored until the next 'systemctl preset ...'
+# or 'systemctl daemon-reload' command.
+
+$state $servicename
+
+EOFPRESET
+	} > "$preset_dir/04-run_qemu-$servicename.preset"
 }
 
 setup_network()
@@ -1145,11 +1159,11 @@ make_rootfs()
 	fi
 
 	# enable ssh
-	enable_systemd_service sshd
+	systemd_preset enable sshd.service
 
 	# These are needed for Arch only, but didn't seem to have any adverse effect on Fedora
-	enable_systemd_service systemd-networkd
-	enable_systemd_service systemd-resolved
+	systemd_preset enable systemd-networkd.service
+	systemd_preset enable systemd-resolved.service
 	setup_network
 
 	# this is effectively 'daxctl migrate-device-model'
