@@ -555,7 +555,6 @@ setup_autorun()
 	local bin_dir="/usr/local/bin"
 	local systemd_dir="/etc/systemd/system/"
 	local systemd_unit="$systemd_dir/rq_autorun.service"
-	local systemd_linkdir="$systemd_dir/rq-custom.target.wants"
 
 	if [[ ! $_arg_autorun ]]; then
 		autorun_file="$prefix/$systemd_unit"
@@ -565,16 +564,20 @@ setup_autorun()
 
 	mkdir -p "$prefix/$bin_dir"
 	mkdir -p "$prefix/$systemd_dir"
-	mkdir -p "$prefix/$systemd_linkdir"
+
 	cp -L "$_arg_autorun" "$prefix/$bin_dir"
 	chmod +x "$prefix/$bin_dir/${_arg_autorun##*/}"
+
+	# TODO: is a target really necessary?
 	cat <<- EOF > "$prefix/$systemd_dir/rq-custom.target"
 		[Unit]
 		Description=run_qemu Custom Target
-		Requires=multi-user.target
 		After=multi-user.target
-		AllowIsolate=yes
+
+		[Install]
+		WantedBy=default.target
 	EOF
+
 	cat <<- EOF > "$prefix/$systemd_unit"
 		[Unit]
 		Description=run_qemu autorun script
@@ -589,10 +592,15 @@ setup_autorun()
 		ExecStart=$bin_dir/${_arg_autorun##*/}
 
 		[Install]
-		WantedBy=rq-custom.target
+		RequiredBy=rq-custom.target
+		WantedBy=default.target
 	EOF
-	ln -sfr "$prefix/$systemd_unit" "$prefix/$systemd_linkdir/${systemd_unit##*/}"
-	ln -sfr "$prefix/$systemd_dir/rq-custom.target" "$prefix/$systemd_dir/default.target"
+
+	# Only when building image, not when updating it.
+	if [ "$(basename "$prefix")" != 'mnt' ]; then
+		systemd_preset enable rq-custom.target
+		systemd_preset enable rq_autorun.service
+	fi
 }
 
 get_loopdev()
@@ -925,7 +933,7 @@ __update_existing_rootfs()
 	fi
 
 	sudo -E bash $_trace_sh -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
-	sudo -E bash $_trace_sh -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
+	sudo -E bash -e $_trace_sh -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
 
 	umount_rootfs 2
 }
