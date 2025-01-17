@@ -1119,9 +1119,20 @@ make_rootfs()
 			prepare_ndctl_build # create mkosi.postinst which compiles
 		fi
 	fi
-	if [ -f /etc/localtime ]; then
+
+	# timedatectl defaults to UTC when /etc/localtime is missing
+	local bld_tz; bld_tz=$( timedatectl | awk '/zone:/ { print $3 }' )
+	# v15 commit f11325afa02c "Adopt systemd-firstboot"
+	if [ "$mkosi_ver" -ge 15 ]; then
+		mkosi_opts+=( --timezone "$bld_tz" )
+	elif [ -f /etc/localtime ]; then
 		mkdir -p mkosi.extra/etc/
+		# Note this does not work across distros.
+		# There are more alternatives at https://systemd.io/CREDENTIALS/
 		cp -P /etc/localtime mkosi.extra/etc/
+	else
+		>&2 printf '\n \tWARNING: could not set timezone, --autorun will likely be stuck\n\n'
+		sleep 3
 	fi
 
 	if [[ $_arg_gcp == "on" ]]; then
