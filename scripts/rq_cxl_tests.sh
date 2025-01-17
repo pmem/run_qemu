@@ -45,4 +45,3 @@ dumpfile /root/ndctl/build/meson-logs/testlog.txt
 echo "======= meson-test.log ========" > /dev/kmsg
 dumpfile "$logfile"
 echo "======= Done $0 ========" > /dev/kmsg
-systemctl poweroff
