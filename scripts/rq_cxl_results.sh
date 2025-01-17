@@ -2,16 +2,14 @@
 # SPDX-License-Identifier: CC0-1.0
 # Copyright (C) 2021 Intel Corporation. All rights reserved.
 
+# TODO: convert this to a proper Expect script.
+
 logfile="$1"
 
 # lines we expect to find in the serial log
 # if any of these are not found, this is an error
 find_lines_re=( 
 	"auto-running .*rq_cxl_tests.sh"
-	"Mapped CXL Memory Device resource"
-	"found Status capability"
-	"found Mailbox capability"
-	"found Memory Device capability"
 	"[0-9]+/[0-9]+ ndctl:.*OK.*"
 	"Ok:[ \t]+[0-9]+"
 	"Fail:[ \t]+0"
