@@ -343,6 +343,9 @@ process_options_logic()
 			_arg_timeout="15"
 		fi
 	fi
+	if [[ $_arg_cxl_test == "on" ]]; then
+		check_ndctl_dir
+	fi
 	if [[ $_arg_nfit_test_run == "on" ]]; then
 		_arg_nfit_test="on"
 		set_topology "med"
