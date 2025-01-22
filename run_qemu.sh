@@ -178,10 +178,7 @@ kill_guest()
 
 guest_alive()
 {
-	if [ -e "$qmp_sock" ]; then
-		return 0
-	fi
-	return 1
+	[ -e "$qmp_sock" ]
 }
 
 loop_teardown()
