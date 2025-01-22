@@ -432,7 +432,11 @@ process_options_logic()
 		accel="tcg"
 	fi
 
-	check_ndctl_dir
+	# For legacy reasons the "$ndctl" variable has been the "real" switch
+	# as --ndctl-build is ON by default - and true most of the time.
+	if [ -n "$ndctl" ]; then
+		check_ndctl_dir
+	fi
 }
 
 make_install_kernel()
@@ -989,10 +993,8 @@ setup_network()
 
 check_ndctl_dir()
 {
-	if [ -n "$ndctl" ]; then
-		[ -f "$ndctl/meson.build" ] ||
-		    fail 'ndctl="%s" is not a valid source directory\n' "$ndctl"
-	fi
+	[ -f "$ndctl/meson.build" ] ||
+		fail 'ndctl="%s" is not a valid source directory\n' "$ndctl"
 }
 
 prepare_ndctl_build()
