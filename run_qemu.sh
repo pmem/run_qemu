@@ -168,7 +168,7 @@ kill_guest()
 	# sometimes this can be inadvertently re-entrant
 	sleep 1
 
-	if [ -x "$qmp" ] && [ -e "$qmp_sock" ]; then
+	if [ -e "$qmp_sock" ]; then
 		"$qmp" "$qmp_sock" <<< "quit" > /dev/null
 		if (( _arg_quiet < 3 )); then
 			echo "run_qemu: Killed guest via QMP"
@@ -193,7 +193,9 @@ loop_teardown()
 
 cleanup()
 {
-	kill_guest
+	if [ -x "$qmp" ]; then
+		kill_guest
+	fi
 	loop_teardown
 	set +x
 }
