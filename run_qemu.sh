@@ -1507,7 +1507,6 @@ prepare_qcmd()
 		machine_args+=("hmat=on")
 	fi
 	if [[ $_arg_cxl == "on" ]]; then
-		# New QEMU always wants the CXL machine
 		machine_args+=("cxl=on")
 	fi
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
