@@ -1004,6 +1004,7 @@ prepare_ndctl_build()
 	cp "${script_dir}"/mkosi/extra/root/ndctl/reinstall.sh \
 		mkosi.extra/root/ndctl/
 	cat <<- 'EOF' > mkosi.postinst
+		#!/bin/sh
 		# v14: 'systemd-nspawn"; v15: "mkosi"
 		printf 'container=%s\n' "$container"
 		# .postinst and others moved outside container in mkosi v15, see
