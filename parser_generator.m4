@@ -29,7 +29,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([cxl-debug], , [Enable 'dyndbg' for CXL modules.], )
 # ARG_OPTIONAL_SINGLE([cxl-pmems], , [Number of QEMU CXL memdevs with pmem (0-4). Rest will default to volatile], [2])
 # ARG_OPTIONAL_BOOLEAN([cxl-test], , [Setup an environment for CXL unit tests\n. Include CXL 'extra' modules to mock a CXL hierarchy using the kernel's 'cxl_test' facility], )
-# ARG_OPTIONAL_BOOLEAN([cxl-test-run], , [CXL unit test mode. Implies the following: cxl\n cxl-debug\n cxl-test\n autorun=rq_cxl_tests.sh\n log=/tmp/rq_<instance>.log\n post-script=rq_cxl_results.sh\n timeout=5\n Non-boolean parameters above can be overridden by manually supplying the corresponding option(s)\n], )
+# ARG_OPTIONAL_BOOLEAN([cxl-test-run], , [CXL unit test mode. Implies the following:\n cxl-debug\n cxl-test\n autorun=rq_cxl_tests.sh\n log=/tmp/rq_<instance>.log\n post-script=rq_cxl_results.sh\n timeout=5\n Non-boolean parameters above can be overridden by manually supplying the corresponding option(s)\n], )
 # ARG_OPTIONAL_BOOLEAN([dax-debug], , [Enable 'dyndbg' for DAX modules.], )
 # ARG_OPTIONAL_BOOLEAN([debug], [v], [Debug script problems (enables set -x)], )
 # ARG_OPTIONAL_BOOLEAN([ndctl-build], , [Enable ndctl build in root image], [on])

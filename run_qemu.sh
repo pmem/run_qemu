@@ -326,7 +326,6 @@ process_options_logic()
 		set -x
 	fi
 	if [[ $_arg_cxl_test_run == "on" ]]; then
-		_arg_cxl="on"
 		_arg_cxl_debug="on"
 		_arg_cxl_test="on"
 		if [[ ! $_arg_autorun ]]; then
