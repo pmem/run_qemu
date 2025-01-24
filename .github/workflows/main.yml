@@ -35,7 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl --ndctl-build]
+        run_opts: [--cxl-test-run --ndctl-build ]
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +54,7 @@ jobs:
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
           sudo apt install -y dracut-core qemu-utils ovmf mtools
+          pip3 install --break-system-packages qemu.qmp
 
       - name: mkosi v20 fixes
         if: matrix.cfg.os  == 'ubuntu-24.04'
