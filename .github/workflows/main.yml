@@ -35,7 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl --ndctl-build]
+        run_opts: [--cxl-test --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -133,8 +133,10 @@ jobs:
             ${{ matrix.cfg.os }}_${{ matrix.arch }}
 
       - name: defconfig
-        run: cd kernel &&
+        working-directory: ${{ github.workspace }}/kernel
+        run: |
           make defconfig ARCH=${{ matrix.arch }}
+          ./scripts/kconfig/merge_config.sh .config ../run_qemu/.github/workflows/cxl-test.cfg
 
       - name: disable AppArmor
         run: |
