@@ -1,0 +1,17 @@
+# See  ndctl.git/ndctl.spec.in  and
+# `apt-rdepends --build-depends --follow=DEPENDS ndctl`
+
+meson
+ninja-build
+
+asciidoctor
+
+libtraceevent-dev
+libtracefs-dev
+
+libkmod-dev
+libudev-dev
+uuid-dev
+libjson-c-dev
+libkeyutils-dev
+libiniparser-dev
