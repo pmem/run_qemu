@@ -42,7 +42,7 @@ jobs:
         with:
           path: run_qemu
 
-      - name: apt get requirements
+      - name: apt install mkosi and run_qemu requirements
         run: |
           # update is required first, see
           # https://github.com/actions/runner-images/issues/2924
@@ -54,6 +54,7 @@ jobs:
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
           sudo apt install -y dracut-core qemu-utils ovmf mtools
+          pip3 install qemu.qmp
 
       - name: mkosi v20 fixes
         if: matrix.cfg.os  == 'ubuntu-24.04'
@@ -61,11 +62,16 @@ jobs:
           cd /usr/lib/python3/dist-packages
           sudo git apply "${{ github.workspace }}"/run_qemu/Patches/ubuntu/24.04/mkosi/*.patch
 
-      - name: apt get Ubuntu 24 requirements
+      - name: apt install Ubuntu 24 requirements for mkosi
         if: matrix.cfg.os  == 'ubuntu-24.04'
         run: |
            # systemd was monolithic in Ubunutu 22
            sudo apt install -y systemd-ukify systemd-boot
+
+      - name: apt install ndctl build dependencies
+        run: |
+           grep -vE '^[[:blank:]]*#' .github/workflows/ubuntu-ndctl-build-deps |
+                    xargs sudo apt install -y
 
       # argbash. TODO: mixing generated code and sources in the same git
       # repo is generally a bad idea but this particular one changes
