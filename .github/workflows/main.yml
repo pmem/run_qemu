@@ -53,8 +53,13 @@ jobs:
 
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
-          sudo apt install -y dracut-core qemu-utils ovmf mtools
+          sudo apt install -y dracut-core qemu-utils ovmf mtools qemu-system-x86
           pip3 install qemu.qmp
+
+          # This Ubuntu 22.04 file disappeared in Ubuntu 24.04, no idea why.
+          # FIXME: make run_qemu.sh#get_ovmf_binaries() smarter and more flexible.
+          test -e /usr/share/OVMF/OVMF_CODE.fd ||
+                    sudo ln -s OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd
 
       - name: mkosi v20 fixes
         if: matrix.cfg.os  == 'ubuntu-24.04'
@@ -159,6 +164,14 @@ jobs:
                  ndctl='${{ github.workspace }}'/ndctl \
                  ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
 
+      # In GitHub runner VMs, with --run:
+      #   qemu-system-x86_64: failed to initialize kvm: Permission denied
+
+      # This is required on a plain Ubuntu system but is blocked on Github runners.
+      # sudo usermod -a -G kvm $(id -u -n)
+
+      # It would probably not work anyway without "nested KVM".
+
       - name: ccache stats post build
         run: |
           # Pre-build stats printed at the start of the build step
@@ -166,4 +179,3 @@ jobs:
           ccache --show-stats
           ccache --show-config | grep dir
 
-      # TODO: drop --no-run thanks to "nested KVM" or something?
