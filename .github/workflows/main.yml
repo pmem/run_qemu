@@ -35,7 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl-test --ndctl-build]
+        run_opts: [--cxl-test-run --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -53,8 +53,16 @@ jobs:
 
           # run_qemu deps
           sudo apt install -y mkosi # this one pulls A LOT
-          sudo apt install -y dracut-core qemu-utils ovmf mtools
+          sudo apt install -y dracut-core qemu-utils ovmf mtools qemu-system-x86
           pip3 install qemu.qmp
+
+          # This is required on a plain Ubuntu system but is blocked on Github runners.
+          # sudo usermod -a -G kvm $(id -u -n)
+
+          # This Ubuntu 22.04 file disappeared in Ubuntu 24.04, no idea why.
+          # FIXME: make run_qemu.sh#get_ovmf_binaries() smarter and more flexible.
+          test -e /usr/share/OVMF/OVMF_CODE.fd ||
+                    sudo ln -s OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd
 
       - name: mkosi v20 fixes
         if: matrix.cfg.os  == 'ubuntu-24.04'
@@ -157,7 +165,7 @@ jobs:
           PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
-                 ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
+                 ../run_qemu/run_qemu.sh -v ${{ matrix.run_opts }}
 
       - name: ccache stats post build
         run: |
