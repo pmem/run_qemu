@@ -729,6 +729,14 @@ build_kernel_cmdline()
 			"efi_fake_mem=2G@10G:0x40000"
 		)
 	fi
+	if [[ $_arg_gcp == "off" ]]; then
+		# https://systemd.io/CREDENTIALS/
+		# This requires systemd v251 or above (commit 4b9a4b017, April 2022)
+		kcmd+=(
+			systemd.set_credential=agetty.autologin:root
+			systemd.set_credential=login.noauth:yes
+		)
+	fi
 
 	tot_mem="$(((_arg_mem_size / 1024) * (num_mems + num_nodes)))"  # in GiB
 	if (( num_legacy_pmems > 0 )); then
@@ -1188,10 +1196,6 @@ make_rootfs()
 
 	setup_depmod "mkosi.extra"
 	setup_autorun "mkosi.extra"
-
-	if [[ $_arg_gcp == "off" ]]; then
-		mkosi_opts+=("--autologin")
-	fi
 
 	if [[ $_arg_debug == "on" ]]; then
 	    # In case of yet another mkosi incompatibility or other issue,
