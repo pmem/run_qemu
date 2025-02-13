@@ -1,0 +1,31 @@
+# mkosi-workspace is located on /var/tmp/ by default (why?), which is usually
+# persistent and slow storage which wears out.  On success, mkosi-workspace is
+# deleted at the end of the build so it really does not need to be located on
+# persistent storage. So, move it to /tmp which is usually tmpfs. Moving to
+# tmpfs makes mkosi SEVERAL TIMES faster!
+#
+# If needed, a new @MkosiWorkspaceDirectory@ variable and option would
+# mitigate both issues below.
+#
+# Warning 1: mkosi-workspace needs emough space to hold the system image: a few
+# gigabytes. If you run out of /tmp space, either make it bigger (mount -o
+# remount,size=newsize after buying a decent amount of RAM), or comment this
+# out.
+#
+# Warning 2: mkosi version v15 and v16 cannot use /tmp/ for this.  (cpio
+# error). Point at another tmpfs with a different name, cherry-pick
+# mkosi fix 28ccb67a92e, or comment this out.
+#
+# Pro-tip: symlink kernel/qbuild/ to /tmp too. A few more gigabytes required.
+# (some old mkosi versions nest their WorkspaceDir inside qbuild/ by default)
+
+[Output]
+# WorkspaceDirectory= (and others) were moved to the brand new [Build]
+# section in mkosi v25 commit ef5a79993e2. Fortunately, no version
+# before or after that mkosi commit seems to mind the duplicate (mkosi
+# versions < v15 don't seem to care about sections at all). So just
+# duplicate and forget about it.
+WorkspaceDirectory=/tmp/
+
+[Build]
+WorkspaceDirectory=/tmp/
