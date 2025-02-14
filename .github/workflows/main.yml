@@ -153,7 +153,15 @@ jobs:
                     sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           fi
 
-      - name: build
+      # run_qemu.sh already does this but separating it lets us see how long it takes.
+      # Also makes the logs much shorter and easier to scroll.
+      - name: build kernel
+        run: |
+          ccache --show-stats
+          cd kernel
+          PATH=/usr/lib/ccache:"$PATH" make -j $(nproc)
+
+      - name: run_qemu.sh
         run: |
           set -x
           mkosi --version
