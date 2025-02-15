@@ -1,0 +1,41 @@
+# mkosi never locates its workspace in "/tmp/" by default because many Linux
+# distributions use tmpfs for /tmp and mkosi does not want to risk running out
+# of RAM with very large images.  But on success, mkosi-workspace is deleted at
+# the end of the build so it really does not need to be located on persistent
+# storage. Also, we tend to build relatively small images: only a few
+# gigabytes.
+#
+# => to use /tmp for mkosi workspaces, simply copy this file to your
+# run_qemu.git/mkosi_tmpl_portable/ directory. This will save several minutes
+# of build time when you have fast CPUs and slow storage
+#
+# Pro-tip: symlink kernel/qbuild/ to /tmp/qbuild.real too. A few more gigabytes
+# required.  (some old mkosi versions nest their WorkspaceDir inside qbuild/ by
+# default)
+
+# If you run out of /tmp space you can make it bigger without rebooting
+# with: "mount -o remount,size=newsize"
+
+# Warning: mkosi version v15 and v16 cannot use /tmp/... here because it's not
+# bind-mounted in bubblewrap (cpio error). Point WorkspaceDirectory= at another
+# tmpfs with a different name or cherry-pick mkosi fix 28ccb67a92e (v17)
+
+# We don't use "/tmp/" itself but a _subdirectory_ of it because:
+# - This keeps /tmp/ "cleaner"
+# - `WorkspaceDirectory=/tmp` is not compatible with mkosi v24 commit
+#   f4eba02dd3ca and the bwrap-sandboxed "rm -rf
+#   WorkspaceDirectory/mkosi-workspace-12345", see
+#   https://github.com/pmem/run_qemu/pull/116 for the obscure details.  (v25
+#   drops bwrap entirely)
+
+[Output]
+# WorkspaceDirectory= (and others) were moved to the brand new [Build]
+# section in mkosi v25 commit ef5a79993e2. Fortunately, no version
+# before or after that mkosi commit seems to mind the duplicate (mkosi
+# versions < v15 don't seem to care about sections at all). So just
+# duplicate [Output] and [Build] and forget about it. This may print
+# a warning.
+WorkspaceDirectory=/tmp/rq_mkosi_wspaces/
+
+[Build]
+WorkspaceDirectory=/tmp/rq_mkosi_wspaces/

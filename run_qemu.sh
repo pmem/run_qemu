@@ -1657,6 +1657,8 @@ post_script()
 main()
 {
 	mkdir -p "$builddir"
+	# Optional
+	mkdir -p /tmp/rq_mkosi_wspaces/
 	process_options_logic
 
 	case "$_arg_rebuild" in
