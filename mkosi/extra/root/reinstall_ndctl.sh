@@ -7,7 +7,7 @@ MYDIR=$(dirname "$0")
 
 main()
 {
-	cd "$MYDIR"
+	cd "$MYDIR"/ndctl
 	rm -rf build
 	meson setup build
 	meson configure -Dtest=enabled -Ddestructive=enabled build

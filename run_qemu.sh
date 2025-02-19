@@ -1008,8 +1008,8 @@ check_ndctl_dir()
 
 prepare_ndctl_build()
 {
-	cp "${script_dir}"/mkosi/extra/root/ndctl/reinstall.sh \
-		mkosi.extra/root/ndctl/
+	cp "${script_dir}"/mkosi/extra/root/reinstall_ndctl.sh \
+		mkosi.extra/root/
 	cat <<- 'EOF' > mkosi.postinst
 		#!/bin/sh
 		# v14: 'systemd-nspawn"; v15: "mkosi"
@@ -1017,11 +1017,11 @@ prepare_ndctl_build()
 		# .postinst and others moved outside container in mkosi v15, see
 		# https://github.com/systemd/mkosi/commit/9b626c647037bc8a
 		if [ -n "$container" ]; then
-			/root/ndctl/reinstall.sh
+			/root/reinstall_ndctl.sh
 		else
 			# The magic, short-lived $SCRIPT variable is already deprecated
 			# and we don't need it.
-			mkosi-chroot /root/ndctl/reinstall.sh
+			mkosi-chroot /root/reinstall_ndctl.sh
 		fi
 	EOF
 	chmod +x mkosi.postinst
