@@ -1008,8 +1008,6 @@ check_ndctl_dir()
 
 prepare_ndctl_build()
 {
-	cp "${script_dir}"/mkosi/extra/root/reinstall_ndctl.sh \
-		mkosi.extra/root/
 	cat <<- 'EOF' > mkosi.postinst
 		#!/bin/sh
 		# v14: 'systemd-nspawn"; v15: "mkosi"
@@ -1126,6 +1124,8 @@ make_rootfs()
 		fi
 		process_mkosi_template "$tmpl" > "$dst"
 	done
+
+	rsync -a "${script_dir}"/mkosi/extra/  mkosi.extra/
 
 	# misc rootfs setup
 	mkdir -p mkosi.extra/root/.ssh
