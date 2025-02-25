@@ -9,28 +9,14 @@
  several times
  - `argbash` to generate the argument parser lib (using `parser_generator.m4`)
 
-You can also git clone https://github.com/systemd/mkosi, symlink to
-`mkosi.git/bin/mkosi` and run mkosi directly from source. This works out of the box
-with git tags v15 and above. `mkosi/README.md` offers other installation methods.
+## mkosi
 
-## mkosi v15+ (Fedora 39+)
-
-Fedora 39 updated mkosi to v15 or higher which contained a lot of breaking changes,
-and indeed broke various expectations with run_qemu's usage of it. Basic
-run_qemu.sh features are now functional with both mkosi v14- and mkosi v15+ but
-please report any bug.
-
-Fedora 39 and 40 have packaged mkosi 14 separately and in parallel to the latest mkosi.
-If you want to keep using mkosi v14 on Fedora 39 or 40:
-
-```
-# dnf remove --noautoremove mkosi
-# dnf install mkosi14
-```
-
-Fedora 41 has stopped packaging mkosi14.
-
-See longer mkosi section below.
+Finding an mkosi version compatible with your operating system version and
+particular test configuration can sometimes be challenging. First, try the
+version packaged with your operating system. This will indirectly install
+mkosi dependencies (which have surprisingly not changed that much across
+mkosi versions). If that OS-provided mkosi version does not work for you,
+check the long mkosi section below.
 
 # Installation
  - symlink the `run_qemu.sh` script into somewhere in your `PATH`
@@ -136,17 +122,90 @@ readlink -f /sys/bus/cxl/devices/mem0
 
 # mkosi
 
-mkosi version 15 made a lot of backwards incompatible changes. Fortunately,
-the location of configuration files changed at the same time. So `run_qemu.sh`
-creates different configuration folder depending on which mkosi version is
-detected: `qbuild/mkosi.default.d/*.conf` for version 14 and before, resp.
-`qbuild/mkosi.conf.d/*.conf` for version 15 and above.
+## run mkosi from source
+
+There are many variables (OS distro and version for host and build
+machine, mkosi version, python dependencies,...) and no solution works
+in every situation. `pipx` offers a relatively good compatibility and
+simplicity trade-off, so it is explained first and in most detail but
+if this does not work then there are alternatives mentioned below.
+
+```
+sudo dnf install mkosi
+sudo dnf remove --noautoremove mkosi # keep mkosi dependencies installed
+git clone https://github.com/systemd/mkosi
+cd mkosi
+# Make sure everything is clean when re-using an existing clone
+git status --ignored
+pipx install --system-site-packages --editable .
+pipx list
+mkosi --version
+export mkosi_bin=$(type -ap mkosi)
+```
+
+Defining `mkosi_bin` is required because `run_qemu.sh` runs mkosi as root
+(`sudo $mkosi_bin`) but `pipx` installs in a subdirectory of your
+`$HOME` which is not in root's `PATH`. Installing mkosi as root is not
+recommended and does not even work for various, complex reasons.
+
+If you get a "module mkosi not found" error with some mkosi versions, define
+`$mkosi_bin` like this instead:
+```
+export mkosi_bin="$HOME"/.local/share/pipx/venvs/mkosi/bin/mkosi
+"$mkosi_bin" --version
+```
+
+To select a specific `mkosi` release:
+
+```
+$ cd mkosi
+$ git checkout vNN # where vNN is the release desired
+```
+
+Thanks to the `--editable` option, there's no need to re-run `pipx` when
+using git to switch between different mkosi versions... **unless** some
+mkosi dependencies change! If you experience any mkosi error or have any
+doubt then use `pipx` to `uninstall` and re-install.
+
+Alternatively, can try to add `mkosi/bin/mkosi` to your PATH or a create a
+symlink to it instead of using `pipx`. This seems to work with mkosi
+releases v15 and above.
+
+`mkosi/README.md` describes more installation alternatives. Note they can
+differ across mkosi versions.
+
+
+## mkosi v15+ (Fedora 39+)
+
+mkosi v15 made a lot of backwards-incompatible changes. run_qemu has
+configuration files for both mkosi v14- and mkosi v15+ now but please
+report any bug.
+
+To mitigate this, Fedora 40 packages both mkosi 14 and 22. So, it is not
+required to clone and and run mkosi from source to switch between these
+two versions. Instead:
+
+```
+# dnf remove --noautoremove mkosi
+# dnf install mkosi14
+```
+
+Fedora 41 has stopped packaging mkosi14.
+
+
+### mkosi configuration files in run_qemu
+
+Fortunately, the location of mkosi configuration files changed at the same
+v15 time. So `run_qemu.sh` creates a different mkosi configuration folder depending
+on which mkosi version is detected: `qbuild/mkosi.default.d/*.conf` for
+version 14 and before versus  `qbuild/mkosi.conf.d/*.conf` for version 15
+and above.
 
 While no such major break of backwards compatibility has happened after v15
-(yet?), features are being added regularly. Various Linux distributions come
+(yet?), mkosi development is very fast-paced. Various Linux distributions come
 with various mkosi versions. So try to keep mkosi configuration(s) as simple as
 possible to avoid accidentally breaking someone else using a different mkosi
-version. Rely on default values as much as possible.
+version. Rely on mkosi default values as much as possible.
 
 Fortunately, most mkosi versions are thoroughly documented and you can
 easily check the documentation of any version without installing anything.
