@@ -209,7 +209,10 @@ version. Rely on mkosi default values as much as possible.
 
 Fortunately, most mkosi versions are thoroughly documented and you can
 easily check the documentation of any version without installing anything.
-For versions 14 and before, use this syntax:
+
+- For versions 14 and before, use this syntax:
   https://github.com/systemd/mkosi/blob/v14/man/mkosi.1
-For versions 15 and above go to:
+- For versions between 15 and 24 go to:
   https://github.com/systemd/mkosi/blob/v15/mkosi/resources/mkosi.md
+- For versions 25 and above:
+  https://github.com/systemd/mkosi/blob/v25/mkosi/resources/man/mkosi.1.md
