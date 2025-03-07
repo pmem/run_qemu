@@ -1125,6 +1125,7 @@ make_rootfs()
 		process_mkosi_template "$tmpl" > "$dst"
 	done
 
+	# Add user space items from host
 	rsync -a "${script_dir}"/mkosi/extra/  mkosi.extra/
 
 	# misc rootfs setup
@@ -1147,10 +1148,6 @@ make_rootfs()
 	fi
 	if [ -f ~/.vimrc ]; then
 		rsync "${rsync_opts[@]}" ~/.vim* mkosi.extra/root/
-	fi
-	mkdir -p mkosi.extra/root/bin
-	if [ -d ~/git/extra-scripts ]; then
-		rsync "${rsync_opts[@]}" ~/git/extra-scripts/bin/* mkosi.extra/root/bin/
 	fi
 	if [[ $_arg_ndctl_build == "on" ]]; then
 		if [ -n "$ndctl" ]; then
