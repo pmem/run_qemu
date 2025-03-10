@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#shellcheck disable=SC3043
+
 set -e
 set -x
 
@@ -7,7 +9,10 @@ MYDIR=$(dirname "$0")
 
 main()
 {
-	cd "$MYDIR"/ndctl
+	local ndctl_src="$1"
+	test -n "$ndctl_src" || ndctl_src="$MYDIR"/ndctl
+
+	cd "$ndctl_src"
 	rm -rf build
 	meson setup build
 	meson configure -Dtest=enabled -Ddestructive=enabled build
@@ -15,4 +20,4 @@ main()
 	meson install -C build
 }
 
-main
+main "$@"
