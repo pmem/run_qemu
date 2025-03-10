@@ -1628,7 +1628,9 @@ start_qemu()
 		fi
 	fi
 	if [[ $_arg_timeout == "0" ]]; then
+	( set -x
 		"${qcmd[@]}"
+	)
 	else
 		printf "guest will be terminated after %d minute(s)\n" "$_arg_timeout"
 		"${qcmd[@]}" & sleep 5
