@@ -1610,7 +1610,7 @@ prepare_qcmd()
 			if [[ $elem == -* ]]; then
 				echo "\\"
 			fi
-			printf "%s " "$elem"
+			printf "%s " "${elem@Q}"
 		done
 		echo
 		exit 0
