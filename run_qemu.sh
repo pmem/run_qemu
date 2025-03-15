@@ -1707,6 +1707,8 @@ main()
 			print_qcmd reusable
 			exit 0
 		fi
+		# Always print qcmd
+		[[ $_arg_debug == 'on' ]] || print_qcmd
 		start_qemu
 	fi
 	if [[ $_arg_post_script ]]; then
