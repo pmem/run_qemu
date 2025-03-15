@@ -445,7 +445,7 @@ make_install_kernel()
 	local inst_path="$1"
 
 	test -n "$kver" || { # can't use fail() when inlined with declare -f
-		>&2 printf 'ERROR: Undefined $kver in make_install_kernel()\n'
+		>&2 printf 'ERROR: Undefined $''kver in make_install_kernel()\n'
 		exit 1
 	}
 
@@ -885,7 +885,7 @@ setup_depmod()
 		echo "not found: $system_map. Try rebuilding with '-r img'"
 		return 1
 	fi
-	: Warning: symlinks created by this depmod do not survive the move
+	: Warning: symlinks created by this depmod dont survive the move
 	: to the virtual machine
 	sudo depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
