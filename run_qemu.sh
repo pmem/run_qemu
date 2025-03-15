@@ -1609,6 +1609,8 @@ prepare_qcmd()
 
 print_qcmd()
 {
+	case "$1" in
+	reusable)
 		for elem in "${qcmd[@]}"; do
 			if [[ $elem == -* ]]; then
 				echo "\\"
@@ -1616,6 +1618,10 @@ print_qcmd()
 			printf "%s " "${elem@Q}"
 		done
 		echo
+		;;
+	*)
+		printf '%s\n' "${qcmd[*]}"
+	esac
 }
 
 start_qemu()
@@ -1698,7 +1704,7 @@ main()
 		prepare_qcmd
 		if [[ $_arg_cmdline == "on" ]]; then
 			set +x
-			print_qcmd
+			print_qcmd reusable
 			exit 0
 		fi
 		start_qemu
