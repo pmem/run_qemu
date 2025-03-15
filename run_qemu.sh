@@ -1604,18 +1604,24 @@ prepare_qcmd()
 		qemu_setup_hmat
 	fi
 
-	if [[ $_arg_cmdline == "on" ]]; then
-		set +x
+	popd > /dev/null || exit 1
+}
+
+print_qcmd()
+{
+	case "$1" in
+	reusable)
 		for elem in "${qcmd[@]}"; do
 			if [[ $elem == -* ]]; then
 				echo "\\"
 			fi
-			printf "%s " "$elem"
+			printf "%s " "${elem@Q}"
 		done
 		echo
-		exit 0
-	fi
-	popd > /dev/null || exit 1
+		;;
+	*)
+		printf '%s\n' "${qcmd[*]}"
+	esac
 }
 
 start_qemu()
@@ -1696,6 +1702,13 @@ main()
 
 	if [[ $_arg_run == "on" ]]; then
 		prepare_qcmd
+		if [[ $_arg_cmdline == "on" ]]; then
+			set +x
+			print_qcmd reusable
+			exit 0
+		fi
+		# Always print qcmd
+		[[ $_arg_debug == 'on' ]] || print_qcmd
 		start_qemu
 	fi
 	if [[ $_arg_post_script ]]; then
