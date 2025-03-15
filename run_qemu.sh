@@ -423,11 +423,11 @@ process_options_logic()
 	fi
 
 	num_cxl_pmems="$_arg_cxl_pmems"
-	if (( $num_cxl_pmems > 4 )); then
+	if (( num_cxl_pmems > 4 )); then
 		echo "error: a maximum of 4 CXL memdevs allowed"
 		exit 1
 	fi
-	num_cxl_vmems="$((4 - $num_cxl_pmems))"
+	num_cxl_vmems="$((4 - num_cxl_pmems))"
 
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg"
