@@ -423,11 +423,11 @@ process_options_logic()
 	fi
 
 	num_cxl_pmems="$_arg_cxl_pmems"
-	if (( $num_cxl_pmems > 4 )); then
+	if (( num_cxl_pmems > 4 )); then
 		echo "error: a maximum of 4 CXL memdevs allowed"
 		exit 1
 	fi
-	num_cxl_vmems="$((4 - $num_cxl_pmems))"
+	num_cxl_vmems="$((4 - num_cxl_pmems))"
 
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg"
@@ -445,7 +445,7 @@ make_install_kernel()
 	local inst_path="$1"
 
 	test -n "$kver" || { # can't use fail() when inlined with declare -f
-		>&2 printf 'ERROR: Undefined $kver in make_install_kernel()\n'
+		>&2 printf 'ERROR: Undefined $''kver in make_install_kernel()\n'
 		exit 1
 	}
 
@@ -885,7 +885,7 @@ setup_depmod()
 		echo "not found: $system_map. Try rebuilding with '-r img'"
 		return 1
 	fi
-	: Warning: symlinks created by this depmod do not survive the move
+	: Warning: symlinks created by this depmod dont survive the move
 	: to the virtual machine
 	sudo depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
 }
@@ -925,6 +925,7 @@ __update_existing_rootfs()
 	if [[ $_arg_debug == 'on' ]]; then
 	    local _trace_sh='-x'
 	fi
+	#shellcheck disable=SC2086
 	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel); kver=$kver make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
@@ -945,7 +946,9 @@ __update_existing_rootfs()
 		sudo rm -rf "$selftests_dir"
 	fi
 
+	#shellcheck disable=SC2086
 	sudo -E bash $_trace_sh -c "$(declare -f setup_depmod); _arg_nfit_test=$_arg_nfit_test; _arg_cxl_test=$_arg_cxl_test; kver=$kver; setup_depmod $inst_prefix"
+	#shellcheck disable=SC2086
 	sudo -E bash -e $_trace_sh -c "$(declare -f setup_autorun); _arg_autorun=$_arg_autorun; setup_autorun $inst_prefix"
 
 	umount_rootfs 2
@@ -1476,7 +1479,7 @@ prepare_qcmd()
 	fi
 
 	# if initrd still hasn't been determined, attempt to use a previous one
-	if [ -z "$initrd" -a -d mkosi.extra/boot ]; then
+	if [ -z "$initrd" ] && [ -d mkosi.extra/boot ]; then
 		initrd=$(find "mkosi.extra/boot" -name "initramfs*" -print | head -1)
 	fi
 
@@ -1527,7 +1530,7 @@ prepare_qcmd()
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
-	if [ $_arg_direct_kernel = "on" -a -n "$vmlinuz" -a -n "$initrd" ]; then
+	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
 	fi
