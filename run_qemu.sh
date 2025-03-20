@@ -429,10 +429,6 @@ process_options_logic()
 	fi
 	num_cxl_vmems="$((4 - num_cxl_pmems))"
 
-	if [[ $_arg_kvm = "off" ]]; then
-		accel="tcg"
-	fi
-
 	# For legacy reasons the "$ndctl" variable has been the "real" switch
 	# as --ndctl-build is ON by default - and true most of the time.
 	if [ -n "$ndctl" ]; then
@@ -1506,6 +1502,9 @@ prepare_qcmd()
 	qcmd+=("$qemu")
 
 	# setup machine_args
+	if [[ $_arg_kvm = "off" ]]; then
+		accel="tcg" # the default
+	fi
 	machine_args=("q35" "accel=$accel")
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
