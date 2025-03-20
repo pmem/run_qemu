@@ -1492,7 +1492,11 @@ prepare_qcmd()
 	# cpu topology: num_nodes sockets, 2 cores per socket, 2 threads per core
 	# so smp = num_nodes (sockets) * cores * threads
 	cores=2
-	threads=2
+	if [[ $_arg_kvm == "on" ]]; then
+		threads=2
+	else
+		threads=1
+	fi
 	sockets=$num_nodes
 	smp=$((sockets * cores * threads))
 
@@ -1545,8 +1549,11 @@ prepare_qcmd()
 
 	qcmd+=("-device" "e1000,netdev=net0,mac=$mac_addr")
 	qcmd+=("-netdev" "user,id=net0,hostfwd=tcp::$hostport-:22")
+
+	if [[ $_arg_kvm = "on" ]]; then
 	# Use host CPU capability
-	qcmd+=("-cpu" "host")
+		qcmd+=("-cpu" "host")
+	fi
 
 	if [[ $_arg_cxl == "on" ]]; then
 		setup_cxl
