@@ -9,9 +9,11 @@
 # run_qemu.git/mkosi_tmpl_portable/ directory. This will save several minutes
 # of build time when you have fast CPUs and slow storage
 #
-# Pro-tip: symlink kernel/qbuild/ to /tmp/qbuild.real too. A few more gigabytes
+# Pro-tips :
+# - symlink kernel/qbuild/ to /tmp/qbuild.real too. A few more gigabytes
 # required.  (some old mkosi versions nest their WorkspaceDir inside qbuild/ by
 # default)
+# - export TMPDIR=/tmp # your mileage depends on your mkosi version
 
 # If you run out of /tmp space you can make it bigger without rebooting
 # with: "mount -o remount,size=newsize"
