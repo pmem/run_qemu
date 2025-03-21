@@ -784,7 +784,6 @@ update_rootfs_boot_kernel()
 	fi
 
 	mount_rootfs 1 # EFI system partition
-	conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
 
 	sudo sfdisk -l "${loopdev}" || sudo parted "${loopdev}" print || true
 
@@ -795,6 +794,10 @@ update_rootfs_boot_kernel()
 		sudo blkid "${loopdev}p2" -o export || true
 		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
 	fi
+
+	# systemd-boot
+
+	local conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
 
 	# Note there is no initrd when booting this way, root filesystem must be built-in.
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
