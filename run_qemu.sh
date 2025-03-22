@@ -784,7 +784,6 @@ update_rootfs_boot_kernel()
 	fi
 
 	mount_rootfs 1 # EFI system partition
-	conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
 
 	sudo sfdisk -l "${loopdev}" || sudo parted "${loopdev}" print || true
 
@@ -795,6 +794,10 @@ update_rootfs_boot_kernel()
 		sudo blkid "${loopdev}p2" -o export || true
 		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
 	fi
+
+	# systemd-boot
+
+	local conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
 
 	# Note there is no initrd when booting this way, root filesystem must be built-in.
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
@@ -807,14 +810,24 @@ update_rootfs_boot_kernel()
 	sudo mkdir -p "$builddir/mnt/run-qemu-kernel/$kver"
 	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/run-qemu-kernel/$kver/vmlinuz"
 
+	local loader_timeout=4
+	if [[ $_arg_kvm == "on" ]] && [[ $_arg_gdb == "on" ]]; then
+		# KVM is not compatible with qemu -S, see
+		# https://github.com/pmem/run_qemu/issues/11
+		loader_timeout=301
+	fi
+
 	defconf="$builddir/mnt/loader/loader.conf"
 	if [ -f "$defconf" ]; then
-		sudo sed -i -e 's/^#.*timeout.*/timeout 4/' "$defconf"
+		# mkosi->"bootctl install ..." creates a stub loader.conf
+		sudo sed -i -e 's/^#.*timeout.*/timeout '"$loader_timeout/" "$defconf"
 		sudo sed -i -e '/default.*/d' "$defconf"
 	else
-		echo "timeout 4" | sudo tee "$defconf"
+		echo "timeout $loader_timeout" | sudo tee "$defconf"
 	fi
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
+
+	generatedfrom_header 'update_rootfs_boot_kernel()' | sudo tee -a "$defconf" > /dev/null
 
 	# Fedora
 	sudo cp "$ovmf_path"/Shell.efi "$builddir"/mnt/shellx64.efi ||
@@ -1572,7 +1585,22 @@ prepare_qcmd()
 	fi
 
 	if [ "$_arg_gdb" == "on" ]; then
-		qcmd+=("-gdb" "tcp::10000" "-S")
+		qcmd+=("-gdb" "tcp::10000")
+		# -S seems to rely on a _software_ breakpoint which seems incompatible with KVM,
+		# see https://github.com/pmem/run_qemu/issues/11
+		if [[ "$_arg_kvm" == 'on' ]]; then
+		    {
+			printf '\n\nWARNING: qemu "-S" option seems incompatible with KVM; not used.\n'
+			if [[ "$_arg_direct_kernel" == 'on' ]]; then
+				printf '\tOption --no-direct-kernel is recommended.\n\n'
+			else
+				printf '\tBoot loader will wait a few minutes.\n\n'
+			fi
+		    } >&2
+			sleep 2
+		else
+		       qcmd+=("-S")
+		fi
 	fi
 
 	# cpu + mem nodes (i.e. the --nodes option)
