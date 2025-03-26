@@ -144,6 +144,21 @@ distro_vars="${script_dir}/${_distro}_vars.sh"
 
 pushd "$_arg_working_dir" > /dev/null || fail "couldn't cd to $_arg_working_dir"
 
+# save the working directory
+working_dir=$(pwd)
+
+# make a path canonical to the working dir
+make_canonical_path()
+{
+	local p=$1
+
+	p=$(eval echo $p)
+	pushd $working_dir > /dev/null
+	p=$(realpath $p)
+	popd > /dev/null
+	echo $p
+}
+
 set_valid_mkosi_ver()
 {
 	"$mkosi_bin" --version
@@ -1124,6 +1139,7 @@ make_rootfs()
 		process_mkosi_template "$tmpl" > "$dst"
 	done
 
+	# Add user space items from host
 	rsync -a "${script_dir}"/mkosi/extra/  mkosi.extra/
 
 	# misc rootfs setup
@@ -1147,15 +1163,28 @@ make_rootfs()
 	if [ -f ~/.vimrc ]; then
 		rsync "${rsync_opts[@]}" ~/.vim* mkosi.extra/root/
 	fi
-	mkdir -p mkosi.extra/root/bin
-	if [ -d ~/git/extra-scripts ]; then
-		rsync "${rsync_opts[@]}" ~/git/extra-scripts/bin/* mkosi.extra/root/bin/
-	fi
 	if [[ $_arg_ndctl_build == "on" ]]; then
 		if [ -n "$ndctl" ]; then
 			rsync "${rsync_opts[@]}" "$ndctl/" mkosi.extra/root/ndctl
 			prepare_ndctl_build # create mkosi.postinst which compiles
 		fi
+	fi
+
+	if [[ "$_arg_extra_dirs" ]]; then
+		extra_dirs=$(make_canonical_path $_arg_extra_dirs)
+		if [[ ! -f $extra_dirs ]]; then
+			fail "$extra_dirs not found"
+		fi
+		echo "Installing extra directories and files from: $extra_dirs"
+		for d in `cat "$extra_dirs"`; do
+			d=$(make_canonical_path $d)
+			echo "     $d"
+			if [[ -e $d ]]; then
+				rsync -a "$d" mkosi.extra/root/
+			else
+				fail "$d not found"
+			fi
+		done
 	fi
 
 	# timedatectl defaults to UTC when /etc/localtime is missing

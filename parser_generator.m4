@@ -34,6 +34,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([debug], [v], [Debug script problems (enables set -x)], )
 # ARG_OPTIONAL_BOOLEAN([ndctl-build], , [Enable ndctl build in root image], [on])
 # ARG_OPTIONAL_BOOLEAN([kern-selftests], , [Enable kernel selftest build in root image (Warning: This option can take a long time and requires many support packages on the host; including some 32 bit)], [off])
+# ARG_OPTIONAL_SINGLE([extra-dirs], , [Specify a file with a list of directories (or files) to be copied to the /root directory within the image.], [])
 # ARG_OPTIONAL_INCREMENTAL([quiet], [q], [quieten some output, can be repeated multiple times to quieten even more], )
 # ARG_OPTIONAL_BOOLEAN([gdb], , [Wait for gdb to connect for kernel debug (port 10000)], )
 # ARG_OPTIONAL_BOOLEAN([gdb-qemu], , [Start qemu with gdb], )
