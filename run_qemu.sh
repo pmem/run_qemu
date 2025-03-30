@@ -19,7 +19,8 @@ pmem_final_size="$((pmem_size + pmem_label_size))"
 selftests_home=root/built-selftests
 : "${mkosi_bin:=mkosi}"
 mkosi_opts=("-i" "-f")
-console="ttyS0"
+#console="ttyS0"
+console="ttyAMA0"
 accel="kvm"
 
 # some canned hmat defaults - make configurable as/when needed
@@ -445,7 +446,8 @@ make_install_kernel()
 		exit 1
 	}
 
-	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	#cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
 	ln -fs System.map-"$kver" "$inst_path"/System.map
@@ -667,16 +669,16 @@ build_kernel_cmdline()
 
 	# standard options
 	kcmd=( 
-		"selinux=0"
-		"audit=0"
-		"console=tty0"
-		"console=$console"
+		#"selinux=0"
+		#"audit=0"
+		#"console=tty0"
+		"\"console=$console"
 		"root=$root"
-		"ignore_loglevel"
+		#"ignore_loglevel"
 		"rw"
-		"initcall_debug"
-		"log_buf_len=20M"
-		"memory_hotplug.memmap_on_memory=force"
+		#"initcall_debug"
+		#"log_buf_len=20M"
+		#"memory_hotplug.memmap_on_memory=force"
 	)
 	if [[ $_arg_gdb == "on" ]]; then
 		kcmd+=( 
@@ -729,7 +731,7 @@ build_kernel_cmdline()
 		# This requires systemd v251 or above (commit 4b9a4b017, April 2022)
 		kcmd+=(
 			systemd.set_credential=agetty.autologin:root
-			systemd.set_credential=login.noauth:yes
+			systemd.set_credential=login.noauth:yes\"
 		)
 	fi
 
@@ -1355,10 +1357,11 @@ get_ovmf_binaries()
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
 		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
 			echo "OVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
-			exit 1
+			#exit 1
 		fi
-		cp "$ovmf_path/OVMF_CODE.fd" .
-		cp "$ovmf_path/OVMF_VARS.fd" .
+		pwd
+		#cp "$ovmf_path/OVMF_CODE.fd" .
+		#cp "$ovmf_path/OVMF_VARS.fd" .
 	fi
 }
 
@@ -1509,7 +1512,8 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg" # the default
 	fi
-	machine_args=("q35" "accel=$accel")
+	#machine_args=("q35" "accel=$accel")
+	machine_args=("virt" "accel=$accel")
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
@@ -1526,13 +1530,14 @@ prepare_qcmd()
 	if [[ $_arg_log ]]; then
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
-	if [[ $_arg_legacy_bios == "off" ]] ; then
+	qcmd+=("-serial" "mon:stdio")
+	if [[ $_arg_legacy_bios == "off" ]] || [[ $_arg_direct_kernel = "on" ]] ; then
 		get_ovmf_binaries
-		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
-		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
-		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
+		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=QEMU_EFI.fd,readonly=on")
+		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=qemu-arm64-efivars")
+		#qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
-	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
+	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk,unit=999")
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
