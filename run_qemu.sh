@@ -5,7 +5,8 @@
 # default config
 : "${builddir:=./qbuild}"
 rootpw="root"
-rootfssize="10G"
+#rootfssize="10G"
+rootfssize="7G"
 espsize="512M"
 nvme_size="1G"
 efi_mem_size="2"   #in GiB
@@ -22,6 +23,8 @@ mkosi_opts=("-i" "-f")
 #console="ttyS0"
 console="ttyAMA0"
 accel="kvm"
+
+arch=$(uname -m)
 
 # some canned hmat defaults - make configurable as/when needed
 # terminology:
@@ -669,15 +672,16 @@ build_kernel_cmdline()
 
 	# standard options
 	kcmd=( 
-		#"selinux=0"
-		#"audit=0"
+		"selinux=0"
+		"audit=0"
 		#"console=tty0"
-		"\"console=$console"
+		"console=$console"
 		"root=$root"
-		#"ignore_loglevel"
+		"ignore_loglevel"
 		"rw"
-		#"initcall_debug"
-		#"log_buf_len=20M"
+		"initcall_debug"
+		"log_buf_len=20M"
+		"dax=never"
 		#"memory_hotplug.memmap_on_memory=force"
 	)
 	if [[ $_arg_gdb == "on" ]]; then
@@ -1357,12 +1361,24 @@ get_ovmf_binaries()
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
 		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
 			echo "OVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
-			#exit 1
+			exit 1
 		fi
-		pwd
-		#cp "$ovmf_path/OVMF_CODE.fd" .
-		#cp "$ovmf_path/OVMF_VARS.fd" .
+		cp "$ovmf_path/OVMF_CODE.fd" .
+		cp "$ovmf_path/OVMF_VARS.fd" .
 	fi
+}
+
+get_aavmf_binaries()
+{
+	if ! [ -e "AAVMF_CODE.fd" ] && ! [ -e "AAVMF_VARS.fd" ]; then
+                if [ ! -f "$aavmf_path/AAMVF_CODE.fd" ]; then
+                        echo "AAVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
+                        exit 1
+                fi
+                cp "$aavmf_path/AAVMF_CODE.fd" .
+                cp "$aavmf_path/AAVMF_VARS.fd" .
+	fi
+	echo "done"
 }
 
 setup_nvme()
@@ -1458,7 +1474,7 @@ prepare_qcmd()
 {
 	# this step may expect files to be present at the toplevel, so run
 	# it before dropping into the builddir
-	build_kernel_cmdline "/dev/sda2"
+	build_kernel_cmdline "/dev/vda2"
 
 	pushd "$builddir" > /dev/null || exit 1
 
@@ -1513,7 +1529,7 @@ prepare_qcmd()
 		accel="tcg" # the default
 	fi
 	#machine_args=("q35" "accel=$accel")
-	machine_args=("virt" "accel=$accel")
+	machine_args=("virt,highmem=on" "accel=$accel")
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
@@ -1532,12 +1548,19 @@ prepare_qcmd()
 	fi
 	qcmd+=("-serial" "mon:stdio")
 	if [[ $_arg_legacy_bios == "off" ]] || [[ $_arg_direct_kernel = "on" ]] ; then
-		get_ovmf_binaries
-		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=QEMU_EFI.fd,readonly=on")
-		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=qemu-arm64-efivars")
+		if [[ $arch != "aarch64" ]]; then
+			get_ovmf_binaries
+		fi
+		if [[ $arch == "aarch64" ]]; then
+			get_aavmf_binaries
+		fi
+
+		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=AAVMF_CODE.fd,readonly=on")
+		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=AAVMF_VARS.fd")
 		#qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
-	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk,unit=999")
+	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk,if=none,id=hd0")
+	qcmd+=("-device" "virtio-blk-pci,drive=hd0,serial="dummyserial"")
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
@@ -1559,7 +1582,7 @@ prepare_qcmd()
 	# Use host CPU capability
 		qcmd+=("-cpu" "host")
 	fi
-
+        qcmd+=("-cpu" "cortex-a72")
 	if [[ $_arg_cxl == "on" ]]; then
 		setup_cxl
 	fi
