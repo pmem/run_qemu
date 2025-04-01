@@ -448,8 +448,11 @@ make_install_kernel()
 		exit 1
 	}
 
-	#cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
-	cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
+	if [[ $(arch) != aarch64 ]]; then
+		cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	else
+		cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
+	fi
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
 	ln -fs System.map-"$kver" "$inst_path"/System.map
@@ -673,7 +676,6 @@ build_kernel_cmdline()
 	kcmd=( 
 		"selinux=0"
 		"audit=0"
-		#"console=tty0"
 		"console=$console"
 		"root=$root"
 		"ignore_loglevel"
@@ -681,7 +683,7 @@ build_kernel_cmdline()
 		"initcall_debug"
 		"log_buf_len=20M"
 		"dax=never"
-		#"memory_hotplug.memmap_on_memory=force"
+		"memory_hotplug.memmap_on_memory=force"
 	)
 	if [[ $_arg_gdb == "on" ]]; then
 		kcmd+=( 
