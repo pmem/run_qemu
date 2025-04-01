@@ -5,8 +5,7 @@
 # default config
 : "${builddir:=./qbuild}"
 rootpw="root"
-#rootfssize="10G"
-rootfssize="7G"
+rootfssize="10G"
 espsize="512M"
 nvme_size="1G"
 efi_mem_size="2"   #in GiB
@@ -1582,7 +1581,13 @@ prepare_qcmd()
 	# Use host CPU capability
 		qcmd+=("-cpu" "host")
 	fi
-        qcmd+=("-cpu" "cortex-a72")
+
+        # If not "-cpu" option not set, Linux won't boot 
+	#
+	if [[ $(arch) == aarch64 ]]; then
+		qcmd+=("-cpu" "max")
+	fi
+
 	if [[ $_arg_cxl == "on" ]]; then
 		setup_cxl
 	fi
