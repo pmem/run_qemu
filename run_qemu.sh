@@ -735,7 +735,7 @@ build_kernel_cmdline()
 		# This requires systemd v251 or above (commit 4b9a4b017, April 2022)
 		kcmd+=(
 			systemd.set_credential=agetty.autologin:root
-			systemd.set_credential=login.noauth:yes\"
+			systemd.set_credential=login.noauth:yes
 		)
 	fi
 
