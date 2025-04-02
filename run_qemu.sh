@@ -445,7 +445,11 @@ make_install_kernel()
 		exit 1
 	}
 
-	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	if [[ $(arch) != "aarch64" ]]; then
+		cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	else
+		cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
+	fi
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
 	ln -fs System.map-"$kver" "$inst_path"/System.map
