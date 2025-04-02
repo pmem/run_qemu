@@ -34,7 +34,7 @@ jobs:
           - os: ubuntu-24.04
             img_distro: ubuntu
             img_rel: noble
-        arch: [arm64]
+        arch: [x86_64]
         run_opts: [--cxl-test --ndctl-build]
 
     steps:
