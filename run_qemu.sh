@@ -1553,6 +1553,9 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "on" ]]; then
 	# Use host CPU capability
 		qcmd+=("-cpu" "host")
+	else
+	# For arm64, if not -cpu is explicitly set Linux won't boot
+		qcmd+=("-cpu" "max")
 	fi
 
 	if [[ $_arg_cxl == "on" ]]; then
