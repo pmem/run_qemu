@@ -1527,10 +1527,16 @@ prepare_qcmd()
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
 	if [[ $_arg_legacy_bios == "off" ]] ; then
-		get_ovmf_binaries
-		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
-		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
-		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
+		if [[ $(arch) != "aarch64" ]]; then
+			get_ovmf_binaries
+			qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
+			qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
+			qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
+		else
+			get_aavmf_binaries
+			qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=AAVMF_CODE.fd,readonly=on")
+			qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=AAVMF_VARS.fd")
+		fi
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
