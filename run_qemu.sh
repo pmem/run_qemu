@@ -19,8 +19,7 @@ pmem_final_size="$((pmem_size + pmem_label_size))"
 selftests_home=root/built-selftests
 : "${mkosi_bin:=mkosi}"
 mkosi_opts=("-i" "-f")
-#console="ttyS0"
-console="ttyAMA0"
+console="ttyS0"
 accel="kvm"
 
 arch=$(uname -m)
@@ -448,7 +447,7 @@ make_install_kernel()
 		exit 1
 	}
 
-	if [[ $(arch) != aarch64 ]]; then
+	if [[ $(arch) != "aarch64" ]]; then
 		cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
 	else
 		cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
@@ -676,6 +675,7 @@ build_kernel_cmdline()
 	kcmd=( 
 		"selinux=0"
 		"audit=0"
+		"console=tty0"
 		"console=$console"
 		"root=$root"
 		"ignore_loglevel"
@@ -1571,6 +1571,7 @@ prepare_qcmd()
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk,if=none,id=hd0")
 	qcmd+=("-device" "virtio-blk-pci,drive=hd0,serial="dummyserial"")
+
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
@@ -1593,9 +1594,9 @@ prepare_qcmd()
 		qcmd+=("-cpu" "host")
 	fi
 
-        # If not "-cpu" option not set, Linux won't boot 
+	# If not "-cpu" option not set, Linux won't boot
 	#
-	if [[ $(arch) == aarch64 ]]; then
+	if [[ $(arch) == "aarch64" ]]; then
 		qcmd+=("-cpu" "max")
 	fi
 
