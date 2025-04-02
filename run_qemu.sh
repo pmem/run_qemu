@@ -22,6 +22,8 @@ mkosi_opts=("-i" "-f")
 console="ttyS0"
 accel="kvm"
 
+arch=$(uname -m)
+
 # some canned hmat defaults - make configurable as/when needed
 # terminology:
 # local = attached directly to the socket in question
@@ -1509,7 +1511,11 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg" # the default
 	fi
-	machine_args=("q35" "accel=$accel")
+	if [[ $(arch) != "aarch64" ]]; then
+		machine_args=("q35" "accel=$accel")
+	else
+		machine_args=("virt,highmem=on" "accel=$acel")
+	fi
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
