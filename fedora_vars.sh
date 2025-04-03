@@ -3,4 +3,3 @@
 # Copyright (C) 2023 Intel Corporation. All rights reserved.
 
 ovmf_path="/usr/share/edk2/ovmf/"
-aavmf_path="/usr/share/AAVMF"
