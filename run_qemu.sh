@@ -22,6 +22,8 @@ mkosi_opts=("-i" "-f")
 console="ttyS0"
 accel="kvm"
 
+arch=$(uname -m)
+
 # some canned hmat defaults - make configurable as/when needed
 # terminology:
 # local = attached directly to the socket in question
@@ -446,7 +448,11 @@ make_install_kernel()
 		exit 1
 	}
 
-	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	if [[ $(arch) != "aarch64" ]]; then
+		cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	else
+		cat arch/arm64/boot/Image > "$inst_path"/vmlinuz-"$kver"
+	fi
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
 	ln -fs System.map-"$kver" "$inst_path"/System.map
@@ -1364,6 +1370,23 @@ get_ovmf_binaries()
 	fi
 }
 
+get_aavmf_binaries()
+{
+	if [[ ! $aavmf_path ]]; then
+		echo "Unable to determine AAVMF path for $_distro"
+		exit 1
+        fi
+	if ! [ -e "AAVMF_CODE.fd" ] && ! [ -e "AAVMF_VARS.fd" ]; then
+                if [ ! -f "$aavmf_path/AAVMF_CODE.fd" ]; then
+                        echo "AAVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
+                        exit 1
+                fi
+                cp "$aavmf_path/AAVMF_CODE.fd" .
+                cp "$aavmf_path/AAVMF_VARS.fd" .
+	fi
+	echo "done"
+}
+
 setup_nvme()
 {
 	local num="$1"
@@ -1457,7 +1480,7 @@ prepare_qcmd()
 {
 	# this step may expect files to be present at the toplevel, so run
 	# it before dropping into the builddir
-	build_kernel_cmdline "/dev/sda2"
+	build_kernel_cmdline "/dev/vda2"
 
 	pushd "$builddir" > /dev/null || exit 1
 
@@ -1511,7 +1534,13 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg" # the default
 	fi
-	machine_args=("q35" "accel=$accel")
+
+	if [[ $(arch) != "aarch64" ]]; then
+		machine_args=("q35" "accel=$accel")
+	else
+		machine_args=("virt,highmem=on" "accel=$accel")
+	fi
+
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
@@ -1528,13 +1557,23 @@ prepare_qcmd()
 	if [[ $_arg_log ]]; then
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
-	if [[ $_arg_legacy_bios == "off" ]] ; then
-		get_ovmf_binaries
-		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
-		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
-		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
+
+	if [[ $_arg_legacy_bios == "off" ]] || [[ $_arg_direct_kernel = "on" ]] ; then
+		if [[ $arch != "aarch64" ]]; then
+			get_ovmf_binaries
+			qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
+			qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
+			qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
+		fi
+		if [[ $arch == "aarch64" ]]; then
+			get_aavmf_binaries
+			qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=AAVMF_CODE.fd,readonly=on")
+			qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=AAVMF_VARS.fd")
+		fi
 	fi
-	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
+	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk,if=none,id=hd0")
+	qcmd+=("-device" "virtio-blk-pci,drive=hd0,serial="dummyserial"")
+
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
@@ -1555,6 +1594,12 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "on" ]]; then
 	# Use host CPU capability
 		qcmd+=("-cpu" "host")
+	fi
+
+	# If not "-cpu" option not set, Linux won't boot
+	#
+	if [[ $(arch) == "aarch64" ]]; then
+		qcmd+=("-cpu" "max")
 	fi
 
 	if [[ $_arg_cxl == "on" ]]; then
