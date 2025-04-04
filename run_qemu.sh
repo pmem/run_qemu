@@ -1357,7 +1357,7 @@ get_ovmf_binaries()
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
 		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
 			fail 'OVMF_*.fd binaries not found, please install "[edk2-]ovmf" or similar, "edk2-shell", ...
-	or try  --legacy-bios'
+	or try --direct-kernel or --legacy-bios'
 		fi
 		cp "$ovmf_path/OVMF_CODE.fd" .
 		cp "$ovmf_path/OVMF_VARS.fd" .
@@ -1528,7 +1528,7 @@ prepare_qcmd()
 	if [[ $_arg_log ]]; then
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
-	if [[ $_arg_legacy_bios == "off" ]] ; then
+	if [[ $_arg_legacy_bios == "off" ]] && [[ $_arg_direct_kernel == 'off' ]] ; then
 		get_ovmf_binaries
 		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
 		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
