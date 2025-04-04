@@ -35,7 +35,6 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl-test --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -56,18 +55,21 @@ jobs:
           sudo apt install -y dracut-core qemu-utils ovmf mtools qemu-system-x86
           pip3 install qemu.qmp
 
-          # This Ubuntu 22.04 file disappeared in Ubuntu 24.04, no idea why.
+      - name: OVMF_4M symlinks for Ubuntu 24.04
+        if: matrix.cfg.os  == 'ubuntu-24.04'
+        run: |
+          # These Ubuntu 22.04 files disappeared in Ubuntu 24.04, no idea why.
           # FIXME: make run_qemu.sh#get_ovmf_binaries() smarter and more flexible.
-          test -e /usr/share/OVMF/OVMF_CODE.fd ||
-                    sudo ln -s OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd
+          sudo ln -s OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd
+          sudo ln -s OVMF_VARS_4M.fd /usr/share/OVMF/OVMF_VARS.fd
 
-      - name: mkosi v20 fixes
+      - name: mkosi v20 fixes on Ubuntu 24.04
         if: matrix.cfg.os  == 'ubuntu-24.04'
         run: |
           cd /usr/lib/python3/dist-packages
           sudo git apply "${{ github.workspace }}"/run_qemu/Patches/ubuntu/24.04/mkosi/*.patch
 
-      - name: apt install Ubuntu 24 requirements for mkosi
+      - name: apt install Ubuntu 24.04 requirements for mkosi
         if: matrix.cfg.os  == 'ubuntu-24.04'
         run: |
            # systemd was monolithic in Ubunutu 22
@@ -161,6 +163,15 @@ jobs:
           cd kernel
           PATH=/usr/lib/ccache:"$PATH" make -j $(nproc)
 
+      # Required for rq_autorun.
+      # It's not clear why mkosi v12 does not do this (v14 seems to work)
+      - name: manual "systemctl preset-all" on Ubuntu 22.04
+        if: matrix.cfg.os  == 'ubuntu-22.04'
+        run: |
+          mkdir -p kernel/qbuild
+          printf 'systemctl preset-all\n' >> kernel/qbuild/mkosi.postinst
+          chmod a+x kernel/qbuild/mkosi.postinst
+
       - name: run_qemu.sh
         run: |
           set -x
@@ -168,18 +179,13 @@ jobs:
           ccache --show-stats
           cp run_qemu/contrib/tmpfs_workspace.tmpl run_qemu/mkosi_tmpl_portable/
           cd kernel
+          printf '#!/bin/sh\nsystemctl poweroff\n' > poweroff.sh && chmod a+x poweroff.sh
           PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
-                 ../run_qemu/run_qemu.sh -v --no-run ${{ matrix.run_opts }}
-
-      # In GitHub runner VMs, with --run:
-      #   qemu-system-x86_64: failed to initialize kvm: Permission denied
-
-      # This is required on a plain Ubuntu system but is blocked on Github runners.
-      # sudo usermod -a -G kvm $(id -u -n)
-
-      # It would probably not work anyway without "nested KVM".
+          # --no-kvm is very slow but required to "stack" QEMUlation on top of a virtual GitHub runner
+          # At "home", use KVM and this instead: sudo usermod -a -G kvm $(id -u -n)
+                 ../run_qemu/run_qemu.sh --no-kvm --autorun "$(pwd)"/poweroff.sh
 
       - name: ccache stats post build
         run: |
@@ -187,4 +193,3 @@ jobs:
           set -x
           ccache --show-stats
           ccache --show-config | grep dir
-
