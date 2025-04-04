@@ -1347,10 +1347,6 @@ options_from_file()
 
 get_ovmf_binaries()
 {
-	if [[ $_arg_legacy_bios == "on" ]]; then
-		return 0
-	fi
-
 	if [[ $_arg_forget_disks == "on" ]]; then
 		rm -f OVMF_*.fd
 	fi
@@ -1360,8 +1356,8 @@ get_ovmf_binaries()
 	fi
 	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
 		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
-			echo "OVMF binaries not found, please install '[edk2-]ovmf' or similar, 'edk2-shell', ..."
-			exit 1
+			fail 'OVMF_*.fd binaries not found, please install "[edk2-]ovmf" or similar, "edk2-shell", ...
+	or try  --legacy-bios'
 		fi
 		cp "$ovmf_path/OVMF_CODE.fd" .
 		cp "$ovmf_path/OVMF_VARS.fd" .
