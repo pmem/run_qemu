@@ -821,10 +821,12 @@ update_rootfs_boot_kernel()
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
 
 	# Fedora
+	# TODO: don't even bother when not using OVMF
 	sudo cp "$ovmf_path"/Shell.efi "$builddir"/mnt/shellx64.efi ||
 		# Arch Linux
-		sudo cp /usr/share/edk2-shell/x64/Shell_Full.efi "$builddir"/mnt/shellx64.efi ||
-		true
+		sudo cp /usr/share/edk2-shell/x64/Shell_Full.efi "$builddir"/mnt/shellx64.efi || {
+			printf 'Optional EDK2 shell not found, ignored.\n'
+		}
 
 	umount_rootfs 1
 
