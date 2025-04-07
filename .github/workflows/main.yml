@@ -35,7 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
-        run_opts: [--cxl-test --ndctl-build]
+        run_opts: [--cxl-test-run --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -180,14 +180,13 @@ jobs:
           ccache --show-stats
           cp run_qemu/contrib/tmpfs_workspace.tmpl run_qemu/mkosi_tmpl_portable/
           cd kernel
-          printf '#!/bin/sh\nsystemctl poweroff\n' > poweroff.sh && chmod a+x poweroff.sh
 
           # --no-kvm is very slow but required to "stack" QEMUlation on top of a virtual GitHub runner
           # At "home", use KVM and this instead: sudo usermod -a -G kvm $(id -u -n)
           PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
-                 ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm --autorun "$(pwd)"/poweroff.sh
+                 ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm
 
       - name: ccache stats post build
         run: |
