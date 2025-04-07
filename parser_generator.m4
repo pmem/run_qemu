@@ -21,7 +21,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_SINGLE([kcmd-append], , [Same as 'kcmd-replace' above, except keep the initial command line supplied in this script,\n and append to it using options listed in FILE], )
 # ARG_OPTIONAL_SINGLE([instance], [n], [Instance ID - Offset the ssh port number for the 'hostfwd' argument passed to qemu.\n Offset '0' imlies port '10022'.\n This allows running multiple instances of the script], [0])
 # ARG_OPTIONAL_SINGLE([timeout], [t], [Timeout (in minutes) after which the guest is forcibly killed\n '0' to disable any timeout (i.e. normal interactive operation).\n Implies --qmp and requires qmp-shell, see --qmp], [0])
-# ARG_OPTIONAL_SINGLE([autorun], [A], [Set up FILE as a systemd startup script that is run automatically after boot\n Needs rebuild={kmod,img,wipe}], )
+# ARG_OPTIONAL_SINGLE([autorun], [A], [Set up FILE as a systemd startup executable that is run automatically after boot\n FILE is copied from the host to /usr/local/bin/ on the guest.\n Needs rebuild={kmod,img,wipe}], )
 # ARG_OPTIONAL_SINGLE([post-script], , [run FILE at the end of the script. If --log was\n provided, pass the logfile as the first argument], )
 # ARG_OPTIONAL_SINGLE([log], [l], [Output the qemu console to FILE instead of stdout], )
 # ARG_OPTIONAL_BOOLEAN([hmat], [H], [Setup an HMAT table in qemu], )
