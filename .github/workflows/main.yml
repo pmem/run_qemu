@@ -35,6 +35,7 @@ jobs:
             img_distro: ubuntu
             img_rel: noble
         arch: [x86_64]
+        run_opts: [--cxl-test --ndctl-build]
 
     steps:
       - uses: actions/checkout@v4
@@ -186,7 +187,7 @@ jobs:
           PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
-                 ../run_qemu/run_qemu.sh --no-kvm --autorun "$(pwd)"/poweroff.sh
+                 ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm --autorun "$(pwd)"/poweroff.sh
 
       - name: ccache stats post build
         run: |
