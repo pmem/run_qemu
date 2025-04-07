@@ -1013,7 +1013,14 @@ check_ndctl_dir()
 
 prepare_ndctl_build()
 {
-	cat <<- 'EOF' > mkosi.postinst
+	local postinst=mkosi.postinst
+	# Until mkosi v18 (commit a28c268996fa), only one postinst script is
+	# supported. So, we concatenate. One drawback: you must manually delete
+	# qbuild/mkosi.postinst when changing this code below.
+	if test -e "$postinst" && grep -q 9b626c647037bc8a "$postinst"; then
+		return
+	fi
+	cat <<- 'EOF' >> "$postinst"
 		#!/bin/sh
 		# v14: 'systemd-nspawn"; v15: "mkosi"
 		printf 'container=%s\n' "$container"
@@ -1027,7 +1034,7 @@ prepare_ndctl_build()
 			mkosi-chroot /root/reinstall_ndctl.sh
 		fi
 	EOF
-	chmod +x mkosi.postinst
+	chmod +x "$postinst"
 }
 
 setup_gcp_tweaks()
