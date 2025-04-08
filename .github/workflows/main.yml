@@ -143,6 +143,9 @@ jobs:
       - name: defconfig
         working-directory: ${{ github.workspace }}/kernel
         run: |
+          # test HACK
+          git fetch https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git next
+          git checkout FETCH_HEAD
           make defconfig ARCH=${{ matrix.arch }}
           ./scripts/kconfig/merge_config.sh .config ../run_qemu/.github/workflows/cxl-test.cfg
 
