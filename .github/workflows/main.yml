@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: pmem/ndctl
-          ref: v80
+          ref: v81
           path: ndctl
 
       - name: download kernel
