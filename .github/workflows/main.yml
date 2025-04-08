@@ -105,7 +105,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: torvalds/linux
-          ref: v6.12
+          ref: v6.15-rc1
           path: kernel
 
       - name: set week number for ccache
