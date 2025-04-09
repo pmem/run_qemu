@@ -13,7 +13,6 @@ legacy_pmem_size="2"   #in GiB
 pmem_size="16384"  #in MiB
 pmem_label_size=2  #in MiB
 pmem_final_size="$((pmem_size + pmem_label_size))"
-: "${qemu:=qemu-system-x86_64}"
 : "${gdb:=gdb}"
 : "${ndctl:=$(readlink -e ~/git/ndctl)}"
 selftests_home=root/built-selftests
@@ -87,6 +86,47 @@ fail()
 	printf "$@"
 	printf '\n'
 	exit 1
+}
+
+set_qemu_machine()
+{
+	# In the future we could override this with some new --qmachine option
+	# ARG_OPTIONAL_SINGLE([qmachine] ...
+	case "${host_arch}" in
+	    x86_64)
+		qemu_machine=q35
+		;;
+	    aarch64)
+		qemu_machine=virt
+		;;
+	    *) fail 'Unknown host architecture %s' "${host_arch}";;
+	esac
+}
+
+# If this grows too big, switch to sourcing separate ${qemu_machine}.sh files
+set_guest_params()
+{
+	case "${qemu_machine}" in
+	    q35)
+		guest_arch_toolchain=x86_64
+		guest_arch_linux=x86_64
+		;;
+	    virt)
+		guest_arch_toolchain=aarch64
+		guest_arch_linux=arm64
+		;;
+	    *)
+		fail "Unknown QEMU machine=%s" "$qemu_machine";;
+	esac
+	machine_args=("${qemu_machine}")
+	test -n "$qemu" || qemu=qemu-system-"$guest_arch_linux"
+}
+
+arch_init()
+{
+	host_arch=$(uname -m)
+	set_qemu_machine
+	set_guest_params
 }
 
 script_dir="$(cd "$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")" && pwd)"
@@ -329,6 +369,9 @@ process_options_logic()
 	if [[ $_arg_debug == "on" ]]; then
 		set -x
 	fi
+
+	arch_init
+
 	if [[ $_arg_cxl_test_run == "on" ]]; then
 		_arg_cxl_debug="on"
 		_arg_cxl_test="on"
@@ -452,7 +495,7 @@ make_install_kernel()
 		exit 1
 	}
 
-	cat arch/x86_64/boot/bzImage > "$inst_path"/vmlinuz-"$kver"
+	cat arch/"${guest_arch_linux}"/boot/*Image > "$inst_path"/vmlinuz-"$kver"
 	cp System.map "$inst_path"/System.map-"$kver"
 	ln -fs vmlinuz-"$kver" "$inst_path"/vmlinuz
 	ln -fs System.map-"$kver" "$inst_path"/System.map
@@ -934,7 +977,9 @@ __update_existing_rootfs()
 	    local _trace_sh='-x'
 	fi
 	#shellcheck disable=SC2086
-	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel); kver=$kver make_install_kernel $inst_path"
+	sudo -E bash $_trace_sh -e -c "$(declare -f make_install_kernel);
+		kver=$kver guest_arch_linux=$guest_arch_linux
+		make_install_kernel $inst_path"
 
 	if [[ $_arg_cxl_test == "off" ]]; then
 		sudo rm -f "$inst_prefix"/usr/lib/modules/"$kver"/extra/cxl_*.ko
@@ -1524,7 +1569,7 @@ prepare_qcmd()
 	if [[ $_arg_kvm = "off" ]]; then
 		accel="tcg" # the default
 	fi
-	machine_args=("q35" "accel=$accel")
+	machine_args+=("accel=$accel")
 	if [[ "$num_pmems" -gt 0 ]]; then
 		machine_args+=("nvdimm=on")
 	fi
