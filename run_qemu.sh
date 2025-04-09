@@ -636,7 +636,7 @@ mount_rootfs()
 	mp="mnt"
 
 	pushd "$builddir" > /dev/null || exit 1
-	test -s "$_arg_rootfs"
+	test -s "$_arg_rootfs" || fail 'Missing rootfs=%s' "$_arg_rootfs"
 	mkdir -p "$mp"
 
 	sudo losetup -Pf "$_arg_rootfs"
