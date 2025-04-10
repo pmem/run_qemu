@@ -46,7 +46,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([cmdline], , [Print the final qemu command line, but don't start qemu], )
 # ARG_OPTIONAL_BOOLEAN([nfit-test-run], , [NFIT unit test mode. Implies the following:\n nfit-test\n autorun=rq_nfit_tests.sh\n log=/tmp/rq_<instance>.log\n post-script=rq_nfit_results.sh\n timeout=20\n Non-boolean parameters above can be overridden by manually supplying the corresponding option(s)\n], )
 # ARG_OPTIONAL_BOOLEAN([nfit-debug], , [Turn on extra debugging for nvdimm\n This turns on *.dyndbg for all nvdimm/nfit related modules], )
-# ARG_OPTIONAL_BOOLEAN([legacy-bios], [L], [Use legacy BIOS instead of the default OVMF], )
+# ARG_OPTIONAL_BOOLEAN([legacy-bios], [L], [Do not start QEMU with EDK2 images (OVMF). This is independent of --direct-kernel.], )
 # ARG_OPTIONAL_BOOLEAN([forget-disks], , [Force re-creation of disk images for attached hardware\n (such as nvme disks, pmem DIMMs, OVMF binaries, etc.)], )
 # ARG_OPTIONAL_BOOLEAN([run], , [actually launch qemu], [on])
 # ARG_OPTIONAL_BOOLEAN([direct-kernel], , [Boot the rootfs image directly by supplying a kernel to qemu using '-kernel'], [on])
