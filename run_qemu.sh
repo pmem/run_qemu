@@ -408,6 +408,8 @@ process_options_logic()
 		fi
 	fi
 
+	[[ $_arg_legacy_bios == 'on' ]] || edk2_vmf_configure
+
 	set_qmp
 
 	if [[ $_arg_git_qemu == "on" ]]; then
@@ -869,19 +871,51 @@ update_rootfs_boot_kernel()
 	fi
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
 
-	[[ "$_arg_legacy_bios" == 'on' ]] ||
-	# Fedora
-	sudo cp "$ovmf_path"/Shell.efi "$builddir"/mnt/shellx64.efi ||
-		# Arch Linux
-		sudo cp /usr/share/edk2-shell/x64/Shell_Full.efi "$builddir"/mnt/shellx64.efi || {
-			printf 'Optional EDK2 shell not found, ignored.\n'
-		}
+	[[ "$_arg_legacy_bios" == 'on' ]] || install_opt_efi_shell
 
 	umount_rootfs 1
 
 	mount_rootfs 2 # Linux root partition
 	sudo ln -sf "../efi/run-qemu-kernel" "$builddir/mnt/boot/run-qemu-kernel"
 	umount_rootfs 2
+}
+
+# All over the place...
+#
+# https://packages.fedoraproject.org/pkgs/edk2/edk2-ovmf/fedora-rawhide.html#files
+# https://packages.debian.org/sid/all/efi-shell-x64/filelist
+# https://packages.debian.org/sid/all/efi-shell-aa64/filelist
+# https://archlinux.org/packages/extra/any/edk2-shell/
+install_opt_efi_shell()
+{
+	local efi_shell
+	local _usr=/usr/share
+	case "${_distro}__${guest_arch_toolchain}" in
+	    fedora__x86_64)
+		efi_shell=${_usr}/edk2/ovmf/Shell.efi ;;
+
+	    debian__x86_64 | ubuntu__x86_64)
+		efi_shell=${_usr}/efi-shell-x64/shellx64.efi ;;
+	    debian__aarch64 | ubuntu__aarch64)
+		efi_shell=${_usr}/efi-shell-aa64/shellaa64.efi ;;
+
+	    arch__x86_64)
+		efi_shell=${_usr}/edk2-shell/x64/Shell_Full.efi ;;
+	    arch__aarch64)
+		efi_shell=${_usr}/edk2-shell/aarch64/Shell_Full.efi ;;
+
+	    *)  efi_shell='Unknown shell.efi location' ;;
+	esac
+
+	if test -e "$efi_shell"; then
+	    # Brute force is best
+	    sudo cp "$efi_shell" "$builddir"/mnt/shellx64.efi
+	    sudo cp "$efi_shell" "$builddir"/mnt/shellaa64.efi
+	else
+	    >&2 printf 'Optional %s not found, ignored.
+\tNote: some images also have a shell built-in, go to the "Boot Manager"\n' \
+		"$efi_shell"
+	fi
 }
 
 setup_depmod()
@@ -1403,22 +1437,86 @@ options_from_file()
 	awk '!/^#|^$/{ gsub(/^[ \t]+|[ \t]+$/, ""); print }' "$file"
 }
 
-get_ovmf_binaries()
+
+# https://packages.fedoraproject.org/pkgs/edk2/edk2-ovmf/fedora-rawhide.html#files
+# https://packages.fedoraproject.org/pkgs/edk2/edk2-aarch64/fedora-rawhide.html#files
+#
+# https://archlinux.org/packages/extra/any/edk2-ovmf/
+# https://archlinux.org/packages/extra/any/edk2-aarch64/
+#
+# Totally inconsistent package names: well done Debian!
+# https://packages.debian.org/sid/all/ovmf/filelist
+# https://packages.debian.org/sid/all/qemu-efi-aarch64/filelist
+# https://launchpad.net/ubuntu/+source/edk2
+
+
+# Configure global variables early and make them available to everyone long
+# before trying to do anything.
+edk2_vmf_configure()
 {
-	if [[ $_arg_forget_disks == "on" ]]; then
-		rm -f OVMF_*.fd
+	local  xVMF  image_suffix  pkg_suffix
+
+	# ';;' == 'break': first one wins
+	case "${guest_arch_toolchain}" in
+	    x86_64)     xVMF='OVMF';  pkg_suffix='ovmf'   ;;
+	    aarch64)    xVMF='AAVMF'; pkg_suffix='aarch64'  ;;
+	esac
+
+	# When upgrading from 2M to 4M, Debian / Ubuntu:
+	# 1. kept the old name for 2M OVMF images
+	# 2. later stopped building 2M images
+	# ... but only for x86_64 - more Debian inconsistency...
+	# See the package README file(s).
+	case "${_distro}__${guest_arch_toolchain}" in
+	    debian__x86_64 | ubuntu__x86_64)
+		image_suffix=_4M.fd ;;
+	    *)
+		image_suffix=.fd ;;
+	esac
+	edk2_vmf_code=${xVMF}_CODE${image_suffix}
+	edk2_vmf_vars=${xVMF}_VARS${image_suffix}
+
+
+	# $edk2_vmf_path default value; can be overriden by the environment
+	local xvmf_dir
+	case "${_distro}__${guest_arch_toolchain}" in
+	    arch__x86_64)
+		xvmf_dir=OVMF/ovmf  ;;
+	    *)
+		xvmf_dir="$xVMF"  ;;
+	esac
+	: "${edk2_vmf_path:=/usr/share/${xvmf_dir}}"
+
+
+	# Just a warning for now as the user could be using "--no-run", provide their
+	# own *.fd files directly in qbuild/, ...
+	if [ ! -e "${edk2_vmf_path}/${edk2_vmf_code}" ] ||
+	       [ ! -e "${edk2_vmf_path}/${edk2_vmf_vars}" ]; then
+
+		>&2 printf '\nWARNING: %s or %s not found in %s.
+Install the [edk2-]%s package or similar use --legacy-bios\n\n' \
+		"${edk2_vmf_code}" "${edk2_vmf_vars}" \
+		"${edk2_vmf_path}" "${pkg_suffix}"
+		sleep 3
 	fi
-	if [[ ! $ovmf_path ]]; then
-		echo "Unable to determine OVMF path for $_distro"
-		exit 1
+}
+
+# Invoked as late as possible, just before starting QEMU
+edk2_vmf_get_images()
+{
+	# The user can provide their own *.fd files in qbuild/
+	if [[ $_arg_forget_disks == 'on' ]]; then
+		rm -f "$edk2_vmf_code" "$edk2_vmf_vars"
 	fi
-	if ! [ -e "OVMF_CODE.fd" ] && ! [ -e "OVMF_VARS.fd" ]; then
-		if [ ! -f "$ovmf_path/OVMF_CODE.fd" ]; then
-			fail 'OVMF_*.fd binaries not found, please install "[edk2-]ovmf" or similar, "edk2-shell", ...
-	or try  --legacy-bios'
+
+	if ! [ -e "$edk2_vmf_code" ] && ! [ -e "$edk2_vmf_vars" ]; then
+		# Copy distro files
+		if [ ! -f "${edk2_vmf_path}/${edk2_vmf_code}" ]; then
+			fail 'EDK2 xVMF *.fd binaries not found in neither %s nor %s' \
+			     "$(pwd)" "${edk2_vmf_path}/"
 		fi
-		cp "$ovmf_path/OVMF_CODE.fd" .
-		cp "$ovmf_path/OVMF_VARS.fd" .
+		cp "${edk2_vmf_path}/${edk2_vmf_code}" .
+		cp "${edk2_vmf_path}/${edk2_vmf_vars}" .
 	fi
 }
 
@@ -1587,9 +1685,9 @@ prepare_qcmd()
 		qcmd+=("-serial" "file:$_arg_log")
 	fi
 	if [[ $_arg_legacy_bios == "off" ]] ; then
-		get_ovmf_binaries
-		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=OVMF_CODE.fd,readonly=on")
-		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=OVMF_VARS.fd")
+		edk2_vmf_get_images
+		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=${edk2_vmf_code},readonly=on")
+		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=${edk2_vmf_vars}")
 		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
