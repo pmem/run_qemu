@@ -56,14 +56,6 @@ jobs:
           sudo apt install -y dracut-core qemu-utils ovmf mtools qemu-system-x86
           pip3 install qemu.qmp
 
-      - name: OVMF_4M symlinks for Ubuntu 24.04
-        if: matrix.cfg.os  == 'ubuntu-24.04'
-        run: |
-          # These Ubuntu 22.04 files disappeared in Ubuntu 24.04, no idea why.
-          # FIXME: make run_qemu.sh#get_ovmf_binaries() smarter and more flexible.
-          sudo ln -s OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd
-          sudo ln -s OVMF_VARS_4M.fd /usr/share/OVMF/OVMF_VARS.fd
-
       - name: mkosi v20 fixes on Ubuntu 24.04
         if: matrix.cfg.os  == 'ubuntu-24.04'
         run: |
