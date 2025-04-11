@@ -869,8 +869,8 @@ update_rootfs_boot_kernel()
 	fi
 	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
 
+	[[ "$_arg_legacy_bios" == 'on' ]] ||
 	# Fedora
-	# TODO: don't even bother when not using OVMF
 	sudo cp "$ovmf_path"/Shell.efi "$builddir"/mnt/shellx64.efi ||
 		# Arch Linux
 		sudo cp /usr/share/edk2-shell/x64/Shell_Full.efi "$builddir"/mnt/shellx64.efi || {
