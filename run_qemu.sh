@@ -1494,7 +1494,7 @@ edk2_vmf_configure()
 	       [ ! -e "${edk2_vmf_path}/${edk2_vmf_vars}" ]; then
 
 		>&2 printf '\nWARNING: %s or %s not found in %s.
-Install the [edk2-]%s package or similar use --legacy-bios\n\n' \
+Install the [edk2-]%s package or similar, or provide edk2_vmf_path or use --legacy-bios\n\n' \
 		"${edk2_vmf_code}" "${edk2_vmf_vars}" \
 		"${edk2_vmf_path}" "${pkg_suffix}"
 		sleep 3
@@ -1512,7 +1512,7 @@ edk2_vmf_get_images()
 	if ! [ -e "$edk2_vmf_code" ] && ! [ -e "$edk2_vmf_vars" ]; then
 		# Copy distro files
 		if [ ! -f "${edk2_vmf_path}/${edk2_vmf_code}" ]; then
-			fail 'EDK2 xVMF *.fd binaries not found in neither %s nor %s' \
+			fail 'EDK2 xVMF *.fd binaries found in neither %s nor %s' \
 			     "$(pwd)" "${edk2_vmf_path}/"
 		fi
 		cp "${edk2_vmf_path}/${edk2_vmf_code}" .
