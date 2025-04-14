@@ -1688,8 +1688,25 @@ prepare_qcmd()
 		edk2_vmf_get_images
 		qcmd+=("-drive" "if=pflash,format=raw,unit=0,file=${edk2_vmf_code},readonly=on")
 		qcmd+=("-drive" "if=pflash,format=raw,unit=1,file=${edk2_vmf_vars}")
-		qcmd+=("-debugcon" "file:uefi_debug.log" "-global" "isa-debugcon.iobase=0x402")
 	fi
+
+	case "${guest_arch_toolchain}" in
+	    # The special device "debugcon" is x86-specific.
+	    #
+	    # Actual debugcon logs also require a debug build of EDK2 (resp. SeaBIOS) which some
+	    # Linux distributions don't provide by default. If the output of the following
+	    # "strings" command is empty then your EDK2 firmware is not a debug build and the
+	    # log file will stay empty:
+	    #
+	    #          strings qbuild/*_CODE*.fd | grep -i ovmf
+	    #
+	    # Somewhat surprisingly, both SeaBIOS and EDK2 run even with --direct-kernel;
+	    # bios_debug.log proves it.
+	    x86_64)
+		qcmd+=("-debugcon" "file:bios_debug.log" "-global" "isa-debugcon.iobase=0x402")
+		;;
+	esac
+
 	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
