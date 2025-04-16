@@ -1677,7 +1677,7 @@ prepare_qcmd()
 	if [[ $_arg_cxl == "on" ]]; then
 		machine_args+=("cxl=on")
 	fi
-	if [[ "${host_arch}" == "aarch64" ]]; then
+	if [[ ${host_arch} == "aarch64" ]]; then
 		machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on")
 	fi
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
