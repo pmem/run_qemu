@@ -1677,7 +1677,10 @@ prepare_qcmd()
 	if [[ $_arg_cxl == "on" ]]; then
 		machine_args+=("cxl=on")
 	fi
-	if [[ ${host_arch} == "aarch64" ]]; then
+	case "${qemu_machine}" in
+	   virt)
+	      machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on") ;;
+	esac
 		machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on")
 	fi
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
