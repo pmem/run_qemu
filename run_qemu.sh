@@ -1677,6 +1677,10 @@ prepare_qcmd()
 	if [[ $_arg_cxl == "on" ]]; then
 		machine_args+=("cxl=on")
 	fi
+	case "${qemu_machine}" in
+	  virt)
+	     machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on") ;;
+	esac
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
 	qcmd+=("-smp" "${smp},sockets=${num_nodes},cores=${cores},threads=${threads}")
