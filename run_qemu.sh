@@ -968,11 +968,11 @@ setup_depmod()
 	fi
 	if [ ! -f "$system_map" ]; then
 		echo "not found: $system_map. Try rebuilding with '-r img'"
-		return 1
+		# return 1
 	fi
 	: Warning: symlinks created by this depmod dont survive the move
 	: to the virtual machine
-	sudo depmod -b "$prefix" -F "$system_map" -C "$depmod_dir" "$kver"
+	sudo depmod -b "$prefix"                  -C "$depmod_dir" "$kver"
 }
 
 __update_existing_rootfs()
