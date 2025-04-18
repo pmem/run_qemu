@@ -1710,7 +1710,11 @@ prepare_qcmd()
 {
 	# this step may expect files to be present at the toplevel, so run
 	# it before dropping into the builddir
-	build_kernel_cmdline "/dev/sda2"
+	mount_rootfs 2
+	local root_partuuid; root_partuuid=$(get_partuuid "${loopdev}" 2)
+	umount_rootfs 2
+
+	build_kernel_cmdline "PARTUUID=${root_partuuid}"
 
 	pushd "$builddir" > /dev/null || exit 1
 
