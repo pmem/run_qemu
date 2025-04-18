@@ -829,6 +829,26 @@ build_kernel_cmdline()
 	kcmd+=( "${kcmd_extra[@]}" )
 }
 
+# Loopback mounts are a bit tricky: they need an ugly delay so we want to minimize
+# them. We don't know whether the image is already mounted or not. We don't know whether
+# it should be stayed mounted or not. We don't know which partition the caller needs. So,
+# we expect the _caller_ to manage loopback mounts entirely and we don't touch them
+# here. Any partition will do.
+get_partuuid()
+{
+	local ldev="$1" partn="$2"
+
+	local root_partuuid
+	root_partuuid="$(sudo blkid "${ldev}p${partn}" -o export | awk -F'=' '/^PARTUUID/{ print $2 }')"
+	if [[ ! $root_partuuid ]]; then
+		sudo losetup --list
+		ls -l /dev/disk/by-loop-ref/ || true
+		sudo blkid "${ldev}p${partn}" -o export || true
+		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
+	fi
+	printf '%s' "$root_partuuid"
+}
+
 update_rootfs_boot_kernel()
 {
 	if [[ ! $kver ]]; then
@@ -839,17 +859,11 @@ update_rootfs_boot_kernel()
 
 	sudo sfdisk -l "${loopdev}" || sudo parted "${loopdev}" print || true
 
-	root_partuuid="$(sudo blkid "${loopdev}p2" -o export | awk -F'=' '/^PARTUUID/{ print $2 }')"
-	if [[ ! $root_partuuid ]]; then
-		sudo losetup --list
-		ls -l /dev/disk/by-loop-ref/ || true
-		sudo blkid "${loopdev}p2" -o export || true
-		fail "Unable to determine root partition UUID, is the mkosi image 'Bootable'?"
-	fi
-
 	# systemd-boot
 
 	local conffile="$builddir/mnt/loader/entries/run-qemu-kernel-$kver.conf"
+	local root_partuuid
+	root_partuuid=$(get_partuuid "${loopdev}" 2)
 
 	# Note there is no initrd when booting this way, root filesystem must be built-in.
 	build_kernel_cmdline "PARTUUID=$root_partuuid"
