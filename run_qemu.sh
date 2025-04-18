@@ -831,7 +831,9 @@ build_kernel_cmdline()
 	fi
 	if [[ $_arg_gcp == "off" ]]; then
 		# https://systemd.io/CREDENTIALS/
-		# This requires systemd v251 or above (commit 4b9a4b017, April 2022)
+		# This requires: - systemd v251 or above (commit 4b9a4b017, April 2022)
+		# - util-linux agetty 2.40 or above,
+		# - /bin/login from util-linux, not "shadow" /bin/login. See #169
 		kcmd+=(
 			systemd.set_credential=agetty.autologin:root
 			systemd.set_credential=login.noauth:yes
@@ -1189,6 +1191,23 @@ prepare_ndctl_build()
 	chmod +x "$postinst"
 }
 
+prepare_shadow_autologin()
+{
+	local postinst=mkosi.postinst
+	# Until mkosi v18 (commit a28c268996fa), only one postinst script is
+	# supported. So, we concatenate. One drawback: you must manually delete
+	# qbuild/mkosi.postinst when changing this code below.
+	if test -e "$postinst" && grep -q shadow_autologin.sh "$postinst"; then
+		return 0
+	fi
+	cat <<- EOF >> "$postinst"
+		#!/bin/sh
+		trusted_console=$console mkosi-chroot /root/rq/shadow_autologin.sh
+	EOF
+	chmod +x "$postinst"
+
+}
+
 setup_gcp_tweaks()
 {
 	mkdir -p mkosi.extra/etc/ssh/sshd_config.d/
@@ -1322,6 +1341,17 @@ make_rootfs()
 			prepare_ndctl_build # create mkosi.postinst which compiles
 		fi
 	fi
+
+	case "$_distro" in
+	    debian|ubuntu)
+		# "set_credential login.noauth" is recognized by util-linux "login" but not by
+		# https://github.com/shadow-maint/shadow login program, see
+		# https://github.com/pmem/run_qemu/issues/169. So we hack the PAM configuration
+		# instead.
+		if test "$mkosi_ver" -ge 15; then
+		    prepare_shadow_autologin
+		fi ;;
+	esac
 
 	# timedatectl defaults to UTC when /etc/localtime is missing
 	local bld_tz; bld_tz=$( timedatectl | awk '/zone:/ { print $3 }' )
