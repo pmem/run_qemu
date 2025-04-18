@@ -3,8 +3,8 @@
 
 [Match]
 Distribution=ubuntu
-Release=|noble
-Release=|oracular
+# Until 22.04 jammy, there was no separate 'systemd-boot' package.
+Release=!jammy
 
 # Some mkosi versions do not automatically download this, even when Bootable=yes
 [Content]
