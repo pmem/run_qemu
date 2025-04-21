@@ -227,12 +227,15 @@ guest_alive()
 
 loop_teardown()
 {
-	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	for loopdev in $(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }'); do
 	if [ -b "$loopdev" ]; then
 		sudo umount "${loopdev}p1" || true
 		sudo umount "${loopdev}p2" || true
-		sudo losetup -d "$loopdev"
+		(set -x
+		sudo losetup -d "$loopdev" || true
+		)
 	fi
+	done
 }
 
 cleanup()
