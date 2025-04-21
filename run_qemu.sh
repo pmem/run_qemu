@@ -81,10 +81,12 @@ fi
 
 fail()
 {
+    {
 	printf 'FATAL: '
 	# shellcheck disable=SC2059
 	printf "$@"
 	printf '\n'
+    } >&2
 	exit 1
 }
 
@@ -726,7 +728,7 @@ get_loopdev()
 \tTry 'sudo losetup -D' to remove any stale loopdevs"
 		} >&2 # get_loopdev() stdout is normally captured
 	fi
-	test -b "$loopdev" || fail "%s is not a block device" "$loopdev" >&2
+	test -b "$loopdev" || fail "%s is not a block device" "$loopdev"
 	printf '%s' "$loopdev"
 }
 
