@@ -659,6 +659,8 @@ setup_autorun()
 	fi
 }
 
+
+# Prints the "/dev/loopX" device currently mounting root.img
 get_loopdev()
 {
 	local loopdev num_loopdev
@@ -668,12 +670,11 @@ get_loopdev()
 	if (( num_loopdev != 1 )); then
 		{ lsblk -f || true
 		sudo losetup --list
-		echo "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev."
-		echo "Try 'sudo losetup -D' to remove any stale loopdevs"
-		} >&2
-		exit 1
+		fail "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev.
+\tTry 'sudo losetup -D' to remove any stale loopdevs"
+		} >&2 # get_loopdev() stdout is normally captured
 	fi
-	test -b "$loopdev" || fail "%s is not a block device" "$loopdev"
+	test -b "$loopdev" || fail "%s is not a block device" "$loopdev" >&2
 	printf '%s' "$loopdev"
 }
 
