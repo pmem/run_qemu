@@ -9,6 +9,8 @@
  several times
  - `argbash` to generate the argument parser lib (using `parser_generator.m4`)
 
+cache test ignore
+
 ## mkosi
 
 Finding an mkosi version compatible with your operating system version and
