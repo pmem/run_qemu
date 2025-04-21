@@ -265,6 +265,50 @@ exit_handler()
 	exit "$err"
 }
 
+
+# Runs a command repeatedly until it succeeds. Returns true as soon as the command returns
+# true before the timeout. Otherwise returns false and prints a timeout message.
+#
+# Arguments:
+#
+#   $1: poll integer interval in millisecs
+#   $2: timeout integer in millisecs. Rounded up to the next interval
+#   the rest: command to run and its arguments
+#
+poll_wait_for()
+{
+    test $# -ge 3 ||
+        fail "poll_wait_for() invoked with $# arguments"
+
+    local ival_s ival="$1"; shift
+    local maxtime="$1"; shift
+
+    ival_s=$(bc <<< "scale=3; ${ival}/1000")
+
+    # debug
+    : printf "Polling '%s' every ${ival}ms for ${maxtime}ms\n" "$*"
+
+    local waited=0 attempts=1 pass=true
+    while ! "$@"; do
+        if (( waited > maxtime )); then
+            pass=false
+            break;
+        fi
+        sleep "$ival_s"
+        : $((attempts++));  waited=$((waited+ival))
+    done
+    # 'waited' is not an actual measure, it's just a multiplication
+    local timeinfo="waiting at least ${waited} ms and ${attempts} attempt(s)"
+    if $pass; then
+        : printf "Successful '%s' after ${timeinfo}\n" "$*"
+    else
+        >&2 printf "Command '%s' never successful after ${timeinfo}\n" "$*"
+    fi
+
+    $pass
+}
+
+
 set_topology()
 {
 	case "$1" in
