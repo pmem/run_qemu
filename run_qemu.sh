@@ -736,14 +736,15 @@ mount_rootfs()
 	mkdir -p "$mp"
 
 	sudo losetup -Pf "$_arg_rootfs"
-	# The -P scan is performed in the background (this can be observed with a simple
-	# 'ls -l /dev/disk/by-loop-ref/')
-	sleep 2
 
 	loopdev=$(get_loopdev)
 	looppart="${loopdev}p${partnum}"
 
-	sleep 1
+	# The -P(partition) scan is performed in the background; this can be observed with
+	# a simple: watch -n 0.1 ls -l /dev/disk/by-loop-ref/
+	poll_wait_for 100 3000 test -e "$looppart" ||
+		fail '%s not found\n' "$looppart"
+
 	sudo mount "$looppart" "$mp"
 	popd > /dev/null || exit 1 # back to kernel tree
 }
