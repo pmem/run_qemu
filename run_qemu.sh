@@ -666,7 +666,10 @@ get_loopdev()
 	local loopdev num_loopdev
 
 	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
-	num_loopdev="$(wc -l <<< "$loopdev")"
+	# We cannot count newlines with `wc -l` because $( ) trims the trailing
+	# newline which makes 0 and 1 loopback device give the same count.
+	num_loopdev=$(grep -c dev/loop <<<"$loopdev")
+
 	if (( num_loopdev != 1 )); then
 		{ lsblk -f || true
 		sudo losetup --list
