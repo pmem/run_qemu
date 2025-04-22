@@ -1,0 +1,23 @@
+---
+# https://docs.github.com/en/actions/using-workflows/reusing-workflows
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+
+name: Daily tests
+
+# yamllint disable-line rule:truthy
+on:
+  # To configure goto https://crontab.guru/
+  schedule:
+    # daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  # One essential purpose is to pre-fill the ccache. actions/cache has relatively
+  # complex access rules for security reasons. PRs can hit cache entries created
+  # by the main branch but not the other way round.
+  # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
+  main-tests:
+    uses: ./.github/workflows/main.yml
