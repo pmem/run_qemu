@@ -15,7 +15,7 @@ name: main test
 # 'workflow_dispatch' allows running this workflow manually from the
 # 'Actions' tab
 # yamllint disable-line rule:truthy
-on: [pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch, workflow_call]
 
 jobs:
   build:
