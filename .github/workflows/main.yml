@@ -110,7 +110,7 @@ jobs:
       # across branches and pull requests.  These will cause apparent
       # "duplicates" to appear in the "Caches" section in
       # Actions->Management. Caching will always work inside a pull request.
-      # A daily run would probably be enough to "seed" all pull requests.
+      # There is a daily run in scheduled.yml to seed the cache.
       - name: Fetch ccache
         uses: actions/cache@v4
         with:
