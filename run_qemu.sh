@@ -826,6 +826,7 @@ build_kernel_cmdline()
 		kcmd+=( 
 			"memmap=3G!6G,1G!9G"
 			"efi_fake_mem=2G@10G:0x40000"
+			"default_hugepagesz=1G hugepagesz=1G hugepages=2"
 		)
 	fi
 	if [[ $_arg_gcp == "off" ]]; then
