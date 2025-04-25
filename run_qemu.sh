@@ -225,9 +225,14 @@ guest_alive()
 	[ -e "$qmp_sock" ]
 }
 
+rootfs_loop_devs()
+{
+	sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }'
+}
+
 loop_teardown()
 {
-	for loopdev in $(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }'); do
+	for loopdev in $(rootfs_loop_devs); do
 	if [ -b "$loopdev" ]; then
 		sudo umount "${loopdev}p1" || true
 		sudo umount "${loopdev}p2" || true
@@ -709,7 +714,7 @@ get_loopdev()
 {
 	local loopdev num_loopdev
 
-	loopdev="$(sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }')"
+	loopdev=$(rootfs_loop_devs)
 	# We cannot count newlines with `wc -l` because $( ) trims the trailing
 	# newline which makes 0 and 1 loopback device give the same count.
 	num_loopdev=$(grep -c dev/loop <<<"$loopdev")
