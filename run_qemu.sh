@@ -229,14 +229,14 @@ guest_alive()
 	[ -e "$qmp_sock" ]
 }
 
-rootfs_loop_devs()
+loop_devs()
 {
-	sudo losetup --list | grep "$_arg_rootfs" | awk '{ print $1 }'
+	sudo losetup --noheadings --output NAME --associated "$1"
 }
 
 loop_teardown()
 {
-	for loopdev in $(rootfs_loop_devs); do
+	for loopdev in $(loop_devs "$abs_rootfs"); do
 	if [ -b "$loopdev" ]; then
 		sudo umount "${loopdev}p1" || true
 		sudo umount "${loopdev}p2" || true
@@ -441,6 +441,8 @@ process_options_logic()
 	if [[ $_arg_debug == "on" ]]; then
 		set -x
 	fi
+
+	abs_rootfs=$(realpath "${builddir}/${_arg_rootfs}")
 
 	arch_init
 
@@ -734,7 +736,7 @@ get_loopdev()
 {
 	local loopdev num_loopdev
 
-	loopdev=$(rootfs_loop_devs)
+	loopdev=$(loop_devs "$abs_rootfs")
 	# We cannot count newlines with `wc -l` because $( ) trims the trailing
 	# newline which makes 0 and 1 loopback device give the same count.
 	num_loopdev=$(grep -c dev/loop <<<"$loopdev")
@@ -742,7 +744,7 @@ get_loopdev()
 	if (( num_loopdev != 1 )); then
 		{ lsblk -f || true
 		sudo losetup --list
-		fail "Expected 1 loopdev for $_arg_rootfs, found $num_loopdev.
+		fail "Expected 1 loopdev for $abs_rootfs, found $num_loopdev.
 \tTry 'sudo losetup -D' to remove any stale loopdevs"
 		} >&2 # get_loopdev() stdout is normally captured
 	fi
