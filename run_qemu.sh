@@ -937,13 +937,25 @@ update_rootfs_boot_kernel()
 	sudo cp "$builddir/mkosi.extra/boot/vmlinuz-$kver" "$builddir/mnt/run-qemu-kernel/$kver/vmlinuz"
 
 	defconf="$builddir/mnt/loader/loader.conf"
+	local loader_timeout=4
+
+	# mkosi->"bootctl install ..." creates a stub loader.conf.
+	# It can also come from a previous run of this script.
 	if [ -f "$defconf" ]; then
-		sudo sed -i -e 's/^#.*timeout.*/timeout 4/' "$defconf"
-		sudo sed -i -e '/default.*/d' "$defconf"
-	else
-		echo "timeout 4" | sudo tee "$defconf"
+		# Comment out existing values. Last value seems to win but it's not
+		# documented in "man loader.conf" so let's not rely on it
+		sudo sed -i -e 's/^[[:blank:]]*timeout\(.*\)/# timeout \1/' "$defconf"
+		sudo sed -i -e 's/^[[:blank:]]*default\(.*\)/# default \1/' "$defconf"
 	fi
-	echo "default run-qemu-kernel-$kver.conf" | sudo tee -a "$defconf"
+
+	{
+	    generatedfrom_header "update_rootfs_boot_kernel() >> $defconf"
+            cat <<EOF
+timeout $loader_timeout
+default run-qemu-kernel-$kver.conf
+
+EOF
+	}  | sudo tee -a "$defconf"
 
 	[[ "$_arg_legacy_bios" == 'on' ]] || install_opt_efi_shell
 
