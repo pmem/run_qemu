@@ -256,6 +256,20 @@ cleanup()
 	set +x
 }
 
+backtrace()
+{
+	( set +x
+	for i in $(seq 1 $((${#FUNCNAME[@]}-1))); do
+
+	    line_no=${BASH_LINENO[$((i-1))]} || true
+	    # BASH_LINENO doesn't always work
+	    if [ "$line_no" -gt 1 ]; then line_no=":$line_no"; else line_no=""; fi
+
+	    printf ' %s()  @  %s%s\n' "${FUNCNAME[i]}" "${BASH_SOURCE[i]}" "${line_no}"
+	done
+	)
+}
+
 # In POSIX theory, the shell automatically saves for us the $? of the
 # "last command before the trap"; see special built-in 'exit' in
 # "2. Shell Command Language" on opengroup.org. However this is
@@ -265,6 +279,8 @@ cleanup()
 trap 'exit_handler $?' EXIT
 exit_handler()
 {
+	test "$1" = 0 || >&2 backtrace
+
 	# 42 "breadcrumb" if forgotten and missing
 	local err="${1-42}"
 	# "set -e" can trigger _twice_ and abort the EXIT handler again!
