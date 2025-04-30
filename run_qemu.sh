@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: CC0-1.0
 # Copyright (C) 2021 Intel Corporation. All rights reserved.
 
+shopt -s inherit_errexit
+
 # default config
 : "${builddir:=./qbuild}"
 rootpw="root"
