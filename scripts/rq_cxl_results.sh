@@ -8,13 +8,13 @@ logfile="$1"
 
 # lines we expect to find in the serial log
 # if any of these are not found, this is an error
+# Since meson commit 1.8.0rc1~199-g23a9a25779db5, meson
+# never prints "Skipped: 0", "Timeout: 0", etc.
 find_lines_re=( 
 	"auto-running .*rq_cxl_tests.sh"
 	"[0-9]+/[0-9]+ ndctl:.*OK.*"
 	"Ok:[ \t]+[0-9]+"
 	"Fail:[ \t]+0"
-	"Skipped:[ \t]+0"
-	"Timeout:[ \t]+0"
 	"Done .*rq_cxl_tests.sh"
 )
 
