@@ -38,9 +38,24 @@ error_lines_re=(
 	"make:.*[Makefile:.*check] Error"
 	"ninja: build stopped: subcommand failed"
 	"[0-9]+/[0-9]+ ndctl:.*FAIL.*"
+	'Fail:[[:blank:]]+[^0[:blank:]]'
+	'Unexpected Pass:[[:blank:]]+[^0[:blank:]]'
+	'Skipped:[[:blank:]]+[^0[:blank:]]'
+	'Timeout:[[:blank:]]+[^0[:blank:]]'
 )
 
 warn_count=0
+
+# Try to find and show the most useful lines.
+# Max 200 lines in case something goes horribly wrong.
+grep_summary()
+{
+	local re e_regs=()
+	for re in "${find_lines_re[@]}" "${error_lines_re[@]}" "${warn_lines_re[@]}"; do
+		e_regs+=('-e' "$re")
+	done
+	grep -n -E "${e_regs[@]}" "$logfile" | head -n 200
+}
 
 exit_success()
 {
@@ -89,17 +104,20 @@ exit_warn()
 
 # main
 
-# if all of the find_lines are not found, it is an automatic failure
+# if any of the expected find_lines is not found, it is an automatic failure
 for re in "${find_lines_re[@]}"; do
 	if grep -qE "$re" "$logfile"; then
 		continue
 	fi
+
+	grep_summary
 	exit_fail "failed to find line: $re"
 done
 
-# if any of the error_lines are found, it is an automatic failure
+# if any of the error_lines is found, it is an automatic failure
 for re in "${error_lines_re[@]}"; do
 	if grep -qE "$re" "$logfile"; then
+		grep_summary
 		exit_fail "found error line: $re"
 	fi
 done
@@ -120,6 +138,7 @@ for re in "${raw_command_re[@]}"; do
 done
 
 if (( warn_count > 0 )); then
+	grep_summary
 	exit_warn
 fi
 
