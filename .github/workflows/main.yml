@@ -88,8 +88,8 @@ jobs:
       - name: download ndctl
         uses: actions/checkout@v4
         with:
-          repository: pmem/ndctl
-          ref: v81
+          repository: marc-hb/ndctl
+          ref: journalctl
           path: ndctl
 
       - name: download kernel
