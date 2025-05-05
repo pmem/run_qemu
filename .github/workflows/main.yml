@@ -180,6 +180,17 @@ jobs:
                  ndctl='${{ github.workspace }}'/ndctl \
                  ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm
 
+      - name: upload test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs ${{ matrix.cfg.os }}
+          if-no-files-found: error
+          path: |
+            /tmp/rq_0.log
+          # This sample would work if we were "pre-"compiling outside the mkosi chroot first.
+          # ${{ github.workspace }}/ndctl/build/meson-logs/meson-log.txt
+
+
       #  Test update_existing_rootfs(), default value for distro= and various other things
       - name: incremental build
         run: |
