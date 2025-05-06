@@ -617,11 +617,6 @@ __build_kernel()
 		quiet="--quiet"
 	fi
 
-	mkdir -p "$inst_path"
-	# /lib -> /usr/lib
-	mkdir -p "${inst_prefix}/usr/lib"
-	ln -sf usr/lib "${inst_prefix}/lib"
-
 	if [[ $_arg_defconfig == "on" ]]; then
 		make $quiet olddefconfig
 		make $quiet prepare
@@ -629,6 +624,11 @@ __build_kernel()
 	kver=$(make -s kernelrelease)
 	test -n "$kver"
 	make $quiet -j"$num_build_cpus"
+
+	mkdir -p "$inst_path"
+	# /lib -> /usr/lib
+	mkdir -p "${inst_prefix}/usr/lib"
+	ln -sf usr/lib "${inst_prefix}/lib"
 
 	# Install Modules Strip = ims
 	local ims=""
