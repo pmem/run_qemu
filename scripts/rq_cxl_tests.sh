@@ -11,6 +11,17 @@ cleanup()
 
 trap cleanup EXIT
 
+set_default_message_loglevel()
+(
+	local console_loglevel default_loglevel
+	# Leave console level unchanged
+	console_loglevel=$(awk '{print $1}' /proc/sys/kernel/printk)
+	# One notch lower than WARNING not to pollute test results
+	default_loglevel=5
+	echo "$console_loglevel $default_loglevel" > /proc/sys/kernel/printk
+)
+set_default_message_loglevel
+
 sleep 4
 echo "======= auto-running $0 ========" > /dev/kmsg
 
@@ -20,6 +31,8 @@ cd "$NDCTL" || {
 }
 
 rm -rf build
+# run_qemu.sh has already "pre-"compiled ndctl in the mkosi chroot, so
+# we don't need anything verbose here, stderr is enough.
 meson setup build 2>/dev/kmsg
 meson configure -Dtest=enabled -Ddestructive=enabled -Dasciidoctor=enabled build 2>/dev/kmsg
 meson compile -C build 2>/dev/kmsg
