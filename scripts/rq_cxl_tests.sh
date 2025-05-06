@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: CC0-1.0
 # Copyright (C) 2021 Intel Corporation. All rights reserved.
 
+: ${NDCTL:=/root/ndctl}
+
 cleanup()
 {
 	systemctl poweroff
@@ -12,8 +14,8 @@ trap cleanup EXIT
 sleep 4
 echo "======= auto-running $0 ========" > /dev/kmsg
 
-cd /root/ndctl || {
-    printf '<0> FATAL: %s: no /root/ndctl directory' "$0" > /dev/kmsg
+cd "$NDCTL" || {
+    printf '<0>FATAL: %s: no %s directory' "$0" "$NDCTL" > /dev/kmsg
     exit 1
 }
 
@@ -41,7 +43,7 @@ dumpfile()
 	set -x
 }
 
-dumpfile /root/ndctl/build/meson-logs/testlog.txt
+dumpfile "$NDCTL"/build/meson-logs/testlog.txt
 echo "======= meson-test.log ========" > /dev/kmsg
 dumpfile "$logfile"
 echo "======= Done $0 ========" > /dev/kmsg
