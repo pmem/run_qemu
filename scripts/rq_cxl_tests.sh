@@ -33,14 +33,23 @@ set +e
 # disable make check here until ndctl re-enables it for libcxl
 meson test -C build --suite cxl > "$logfile" 2>&1
 
-# cat logfile > /dev/kmsg doesn't work (-EINVAL)
+# /dev/kmsg has a 1024 bytes limit ("invalid write")
+#
+# When testing this limit interactively, /bin/printf may hit it while
+# the shell's built-in printf command may not. That's because the shell
+# may read or write less than 1024 bytes at a time. It's unpredictable
+# which is why we need "-n $maxlen"
 dumpfile()
 {
-	set +x
-	while read -r line; do
-		echo "$line" > /dev/kmsg
+( set +x
+	local filename; filename=$(basename "$1")
+	local filenamelen
+	filenamelen=$(printf '%s' "$filename" | wc -c)
+	local maxlen; maxlen=$((1024-filenamelen-6))
+	while IFS= read -t 60 -n "$maxlen" -r line; do
+		printf '<5>%s: %s\n' "$filename" "$line" > /dev/kmsg
 	done < "$1"
-	set -x
+)
 }
 
 dumpfile "$NDCTL"/build/meson-logs/testlog.txt
