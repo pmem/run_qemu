@@ -594,7 +594,7 @@ install_build_initrd()
 	# and it expects a /lib/modules/$kver/vmlinuz
 	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
 
-	dracut --force --verbose \
+	sudo dracut --force --verbose \
 		--no-hostonly \
 		--show-modules \
 		--kver="$kver" \
@@ -1818,8 +1818,12 @@ prepare_qcmd()
 		machine_args+=("cxl=on")
 	fi
 	case "${qemu_machine}" in
+	   q35)
+	     qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk") ;;
 	  virt)
-	     machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on") ;;
+	     machine_args+=("highmem=on,compact-highmem=on,highmem-ecam=on,highmem-mmio=on")
+	     qcmd+=("-blockdev" "driver=file,filename=$_arg_rootfs,node-name=disk0")
+	     qcmd+=("-device" "virtio-blk-pci,drive=disk0") ;;
 	esac
 	qcmd+=("-machine" "$(IFS=,; echo "${machine_args[*]}")")
 	qcmd+=("-m" "${qemu_mem}M,slots=$((num_pmems + num_mems)),$pmem_append")
@@ -1851,7 +1855,6 @@ prepare_qcmd()
 		;;
 	esac
 
-	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
