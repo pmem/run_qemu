@@ -594,7 +594,7 @@ install_build_initrd()
 	# and it expects a /lib/modules/$kver/vmlinuz
 	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
 
-	dracut --force --verbose \
+	sudo dracut --force --verbose \
 		--no-hostonly \
 		--show-modules \
 		--kver="$kver" \
