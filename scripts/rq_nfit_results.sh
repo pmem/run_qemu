@@ -6,13 +6,13 @@ logfile="$1"
 
 # lines we expect to find in the serial log
 # if any of these are not found, this is an error
+# Since meson commit 1.8.0rc1~199-g23a9a25779db5, meson
+# never prints "Skipped: 0", "Timeout: 0", etc.
 find_lines_re=( 
 	"auto-running .*rq_nfit_tests.sh"
 	"[0-9]+/[0-9]+ ndctl:.*OK.*"
 	"Ok:[ \t]+[0-9]+"
 	"Fail:[ \t]+0"
-	"Skipped:[ \t]+0"
-	"Timeout:[ \t]+0"
 	"Done .*rq_nfit_tests.sh"
 )
 
@@ -36,6 +36,10 @@ error_lines_re=(
 	"make:.*[Makefile:.*check] Error"
 	"ninja: build stopped: subcommand failed"
 	"[0-9]+/[0-9]+ ndctl:.*FAIL.*"
+	'Fail:[[:blank:]]+[^0[:blank:]]'
+	'Unexpected Pass:[[:blank:]]+[^0[:blank:]]'
+	'Skipped:[[:blank:]]+[^0[:blank:]]'
+	'Timeout:[[:blank:]]+[^0[:blank:]]'
 )
 
 warn_count=0
