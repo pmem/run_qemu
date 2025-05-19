@@ -1206,14 +1206,7 @@ check_ndctl_dir()
 
 prepare_ndctl_build()
 {
-	local postinst=mkosi.postinst
-	# Until mkosi v18 (commit a28c268996fa), only one postinst script is
-	# supported. So, we concatenate. One drawback: you must manually delete
-	# qbuild/mkosi.postinst when changing this code below.
-	if test -e "$postinst" && grep -q 9b626c647037bc8a "$postinst"; then
-		return
-	fi
-	cat <<- 'EOF' >> "$postinst"
+	cat <<- 'EOF' | postinst_append_if_not_found 9b626c647037bc8a
 		#!/bin/sh
 		# v14: 'systemd-nspawn"; v15: "mkosi"
 		printf 'container=%s\n' "$container"
@@ -1227,24 +1220,35 @@ prepare_ndctl_build()
 			mkosi-chroot /root/reinstall_ndctl.sh
 		fi
 	EOF
-	chmod +x "$postinst"
 }
 
 prepare_shadow_autologin()
 {
-	local postinst=mkosi.postinst
-	# Until mkosi v18 (commit a28c268996fa), only one postinst script is
-	# supported. So, we concatenate. One drawback: you must manually delete
-	# qbuild/mkosi.postinst when changing this code below.
-	if test -e "$postinst" && grep -q shadow_autologin.sh "$postinst"; then
-		return 0
-	fi
-	cat <<- EOF >> "$postinst"
+	cat <<- EOF | postinst_append_if_not_found  shadow_autologin.sh
 		#!/bin/sh
 		trusted_console=$console mkosi-chroot /root/rq/shadow_autologin.sh
 	EOF
-	chmod +x "$postinst"
+}
 
+# Append stdin to the mkosi.postinst script if the $1 argument
+# "watermark" is not already found there. Otherwise discard stdin.
+# WARNING: this function adds comments with a '# ' prefix.
+postinst_append_if_not_found()
+{
+	local watermark="$1"
+	local _outputf=mkosi.postinst
+	# Until mkosi v18 (commit a28c268996fa),  only one postinst script is
+	# supported. So, we concatenate. One drawback:  you must manually delete
+	# qbuild/mkosi.postinst when changing run_qemu.sh
+	if test -e "$_outputf" && grep -q -e "$watermark" "$_outputf"; then
+		cat >/dev/null
+		return
+	fi
+	{ cat
+	  generatedfrom_header "postinst_append_if_not_found $watermark"
+	  printf '###  -----------------------\n\n'
+	} >> "$_outputf"
+	chmod +x "$_outputf"
 }
 
 setup_gcp_tweaks()
