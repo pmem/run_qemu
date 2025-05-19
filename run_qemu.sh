@@ -290,6 +290,9 @@ exit_handler()
 	exit "$err"
 }
 
+# Silence SC2317 and SC2329
+# https://github.com/koalaman/shellcheck/issues/2542
+false && exit_handler "$@"
 
 # Runs a command repeatedly until it succeeds. Returns true as soon as the command returns
 # true before the timeout. Otherwise returns false and prints a timeout message.
@@ -2055,4 +2058,9 @@ main()
 	fi
 }
 
-main
+# This compound statement { } forces bash to read it entirely before
+# running it. This allows modifying the script while it's running.
+# https://hachyderm.io/@simontatham/114511220670677410
+{
+	main; exit $?
+}
