@@ -1858,7 +1858,9 @@ prepare_qcmd()
 		;;
 	esac
 
-	qcmd+=("-drive" "file=$_arg_rootfs,format=raw,media=disk")
+	qcmd+=("-blockdev" "driver=file,node-name=maindisk,filename=$_arg_rootfs")
+	qcmd+=("-device"   "virtio-blk,bus=pcie.0,drive=maindisk")
+
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
