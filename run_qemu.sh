@@ -7,8 +7,12 @@ shopt -s inherit_errexit
 # default config
 : "${builddir:=./qbuild}"
 rootpw="root"
+
+# Only for mkosi v14 and before. v15 and above use "systemd-repart" instead,
+# see mkosi documentation and https://github.com/pmem/run_qemu/issues/88
 rootfssize="10G"
 espsize="512M"
+
 nvme_size="1G"
 efi_mem_size="2"   #in GiB
 legacy_pmem_size="2"   #in GiB
