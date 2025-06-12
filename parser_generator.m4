@@ -38,7 +38,7 @@ exit 11  #)Created by argbash-init v2.9.0
 # ARG_OPTIONAL_BOOLEAN([gdb], , [Wait for gdb to connect for kernel debug (port 10000)], )
 # ARG_OPTIONAL_BOOLEAN([gdb-qemu], , [Start qemu with gdb], )
 # ARG_OPTIONAL_BOOLEAN([qmp], , [Invokes QEMU with -qmp which opens a QMP control socket at unix:/tmp/run_qemu_qmp. Using that socket requires the 'qmp-shell' script.\nWhen needed, run_qemu.sh can find qmp-shell either in the PATH, or in scripts/qmp/ in the qemu source when using --git-qemu.\nThe official qemu.qmp package is available on PyPI.], )
-# ARG_OPTIONAL_BOOLEAN([rw], , [Make guest image writeable (remove -snapshot)\n (Note that an image rebuild will lose any changes made via --rw)], )
+# ARG_OPTIONAL_BOOLEAN([rw], , [Persist run-time image changes for the next cold boot.\nA reboot does not lose changes; for persistency a reboot is a non-event.\nNote that an image rebuild will always reset any changes made via --rw]\n, )
 # ARG_OPTIONAL_BOOLEAN([curses], , [Default display is -nographic. switch to -curses instead with this option.\n Use Esc+1, Esc+2, etc. to switch between the different screens.\n 'q' in the monitor screen to quit], )
 # ARG_OPTIONAL_BOOLEAN([git-qemu], [g], [Use a qemu tree at '~/git/qemu/' for qemu binaries.\n This overrides any qemu=<foo> setting from the env.],  )
 # ARG_OPTIONAL_BOOLEAN([nfit-test], , [Setup an environment for unit tests\n  - include libnvdimm 'extra' modules\n  - add some memmap reserved memory\n Note: --rebuild=img or higher required when switching either to or away from nfit-test.\n This overrides any supplied 'preset' or topology options and forces preset=med], )

@@ -1862,7 +1862,18 @@ prepare_qcmd()
 		;;
 	esac
 
-	qcmd+=("-blockdev" "driver=file,node-name=maindisk,filename=$_arg_rootfs")
+	if [[ $_arg_rw == 'on' ]]; then
+		qcmd+=("-blockdev" "driver=file,node-name=maindisk,filename=${_arg_rootfs}")
+	else
+		local _overlay=${_arg_rootfs}-overlay.qcow2
+		rm -f "${_overlay}"
+		qemu-img create -F raw -b "${_arg_rootfs}" -f qcow2 "${_overlay}"
+		# "Finding your way through the QEMU parameter jungle"
+		# -- Thomas Huth
+		qcmd+=("-blockdev" "file,node-name=mainoverlay,filename=${_overlay}")
+		qcmd+=("-blockdev" "qcow2,node-name=maindisk,file=mainoverlay")
+	fi
+
 	qcmd+=("-device"   "virtio-blk,bus=pcie.0,drive=maindisk")
 
 	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
@@ -1903,6 +1914,7 @@ prepare_qcmd()
 	fi
 
 	if [[ $_arg_rw == "off" ]]; then
+		# Note this is only for the (deprecated) -drive and ignored by -blockdev
 		qcmd+=("-snapshot")
 	fi
 
