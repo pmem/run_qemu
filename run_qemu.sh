@@ -967,6 +967,11 @@ update_rootfs_boot_kernel()
 
 	defconf="$builddir/mnt/loader/loader.conf"
 	local loader_timeout=4
+	if [[ $_arg_kvm == "on" ]] && [[ $_arg_gdb == "on" ]]; then
+		# KVM is not compatible with qemu -S, see
+		# https://github.com/pmem/run_qemu/issues/11
+		loader_timeout=301
+	fi
 
 	# mkosi->"bootctl install ..." creates a stub loader.conf.
 	# It can also come from a previous run of this script.
@@ -1919,7 +1924,22 @@ prepare_qcmd()
 	fi
 
 	if [ "$_arg_gdb" == "on" ]; then
-		qcmd+=("-gdb" "tcp::10000" "-S")
+		qcmd+=("-gdb" "tcp::10000")
+		# -S seems to rely on a _software_ breakpoint which seems incompatible with KVM,
+		# see https://github.com/pmem/run_qemu/issues/11
+		if [[ "$_arg_kvm" == 'on' ]]; then
+		    {
+			printf '\n\nWARNING: qemu "-S" option seems incompatible with KVM; not used.\n'
+			if [[ "$_arg_direct_kernel" == 'on' ]]; then
+				printf '\tOption --no-direct-kernel is recommended.\n\n'
+			else
+				printf '\tBoot loader will wait a few minutes.\n\n'
+			fi
+		    } >&2
+			sleep 2
+		else
+		       qcmd+=("-S")
+		fi
 	fi
 
 	# cpu + mem nodes (i.e. the --nodes option)
