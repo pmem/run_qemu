@@ -97,7 +97,7 @@ The script enables generating a sane QEMU commandline for instantiating a basic 
 - --dax-debug: Add any and all flags for extra debug of dax modules (kernel)
 
 ### Kernel config
-- Make sure to Turn on CXL related options in the kernel's .config:
+- Make sure to Turn on CXL related options in the kernel's .config, at least:
 ```
 $ grep -i cxl .config
 CONFIG_CXL_BUS=y
@@ -108,6 +108,13 @@ CONFIG_CXL_PMEM=m
 CONFIG_CXL_MEM=m
 CONFIG_CXL_PORT=y
 CONFIG_CXL_SUSPEND=y
+```
+
+For a more complete list, you can re-use the `*.cfg` files used in
+`.github/` CI as a good starting point:
+```
+make defconfig
+./scripts/kconfig/merge_config.sh .config ../run_qemu/.github/workflows/*.cfg
 ```
 
 The following is a way to check basic sanity within the QEMU guest:
