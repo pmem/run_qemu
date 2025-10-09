@@ -169,6 +169,8 @@ get_os()
              END    { exit notfound }'     /etc/os-release
 }
 
+_host_distro=$(get_os)
+
 # distro:  if any, user input passed to mkosi configuration line: "Distribution=$distro"
 # rev:     if any, user input passed to mkosi configuration line: "Release=$rev"
 # _distro: variable private to this script. Defaults to build OS like mkosi does.
@@ -176,7 +178,7 @@ if [ -n "$distro" ]; then
     _distro=${distro}
     distribution_def="Distribution=$distro"
 else
-    _distro=$(get_os)
+    _distro="$_host_distro"
     distribution_def=''
 fi
 
@@ -1005,7 +1007,7 @@ install_opt_efi_shell()
 {
 	local efi_shell
 	local _usr=/usr/share
-	case "${_distro}__${guest_arch_toolchain}" in
+	case "${_host_distro}__${guest_arch_toolchain}" in
 	    fedora__x86_64)
 		efi_shell=${_usr}/edk2/ovmf/Shell.efi ;;
 
@@ -1614,7 +1616,7 @@ edk2_vmf_configure()
 	# 2. later stopped building 2M images
 	# ... but only for x86_64 - more Debian inconsistency...
 	# See the package README file(s).
-	case "${_distro}__${guest_arch_toolchain}" in
+	case "${_host_distro}__${guest_arch_toolchain}" in
 	    debian__x86_64 | ubuntu__x86_64)
 		image_suffix=_4M.fd ;;
 	    *)
@@ -1626,7 +1628,7 @@ edk2_vmf_configure()
 
 	# $edk2_vmf_path default value; can be overriden by the environment
 	local xvmf_dir
-	case "${_distro}__${guest_arch_toolchain}" in
+	case "${_host_distro}__${guest_arch_toolchain}" in
 	    arch__x86_64)
 		xvmf_dir=OVMF/ovmf  ;;
 	    *)
