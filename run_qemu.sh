@@ -266,10 +266,10 @@ backtrace()
 	for i in $(seq 1 $((${#FUNCNAME[@]}-1))); do
 
 	    line_no=${BASH_LINENO[$((i-1))]} || true
-	    # BASH_LINENO doesn't always work
-	    if [ "$line_no" -gt 1 ]; then line_no=":$line_no"; else line_no=""; fi
+	    # BASH_LINENO sometimes fails and falls back to 1
+	    [ "$line_no" -gt 1 ] || line_no=""
 
-	    printf ' %s()  @  %s%s\n' "${FUNCNAME[i]}" "${BASH_SOURCE[i]}" "${line_no}"
+	    printf '%s:%s:%s()\n'  "${BASH_SOURCE[i]}" "${line_no}" "${FUNCNAME[i]}"
 	done
 	)
 }
