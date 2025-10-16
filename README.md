@@ -73,6 +73,12 @@ check the long mkosi section below.
          UserKnownHostsFile /dev/null
 
     And then `ssh rq`. You may need to open port 10022 on any local firewalls.
+    Then, the `dpipe` and `sshfs` programs can be used to let the guest access host
+    files. For instance:
+      `dpipe /usr/lib/ssh/sftp-server = ssh rq sshfs :$HOME/CXL /root/CXL -o slave`
+    Supposedly faster file sharing options like 9P or virtiofs exist but
+    they require much more complex configuration. This single line always
+    works out of the box.
  - The root password for the guest VM is `root` by default but note many Linux
    distributions restrict remote root access in various ways. The serial console
    automatically logs in, and a password isn't required.
