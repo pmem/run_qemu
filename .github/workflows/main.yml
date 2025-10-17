@@ -179,7 +179,7 @@ jobs:
           PATH=/usr/lib/ccache:"$PATH" \
           distro=${{ matrix.cfg.img_distro }} rev=${{ matrix.cfg.img_rel }} \
                  ndctl='${{ github.workspace }}'/ndctl \
-                 ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm
+                 ../run_qemu/run_qemu.sh ${{ matrix.run_opts }} --no-kvm --timeout=20
 
       - name: upload test logs
         if: ${{ !cancelled() }}
