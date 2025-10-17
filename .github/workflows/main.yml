@@ -148,8 +148,9 @@ jobs:
                     sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           fi
 
-      # run_qemu.sh already does this but separating it lets us see how long it takes.
-      # Also makes the logs much shorter and easier to scroll.
+      # We could just let run_qemu.sh do this in the next step, but we want to
+      # know how long it takes.  Splitting logs also makes them much shorter
+      # and easier to scroll. Finally, finer-grained failures are better.
       - name: build kernel
         run: |
           ccache --show-stats
