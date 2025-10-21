@@ -14,8 +14,7 @@ main()
 
 	cd "$ndctl_src"
 	rm -rf build
-	meson setup build
-	meson configure -Dtest=enabled -Ddestructive=enabled build
+	meson setup     -Dtest=enabled -Ddestructive=enabled build
 	meson compile -C build
 	meson install -C build
 }
