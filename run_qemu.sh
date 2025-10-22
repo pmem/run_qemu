@@ -1416,6 +1416,16 @@ make_rootfs()
 		fi
 	fi
 
+	# Disable udev hotplug
+	case "$_distro" in
+	    centos)
+		cat <<- EOF | postinst_append_if_not_found 40-redhat-hotplug
+#!/bin/sh
+mkosi-chroot mkdir /lib/udev/rules.d/Disabled/
+mkosi-chroot mv /lib/udev/rules.d/40-redhat-hotplug.rules /lib/udev/rules.d/Disabled/ || true
+EOF
+	esac
+
 	case "$_distro" in
 	    debian|ubuntu)
 		# "set_credential login.noauth" is recognized by util-linux "login" but not by
