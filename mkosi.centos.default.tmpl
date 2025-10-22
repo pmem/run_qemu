@@ -2,8 +2,12 @@
 # October 2025. This is not much and only manual testing but it is still
 # vastly better than no starting point at all.
 
+[Distribution]
+Repositories=epel
+
 [Content]
 Packages=
+  epel-release # "Repositories=epel" above takes effect only a image build time.
   openssh-clients
   openssh-server
   httpd
