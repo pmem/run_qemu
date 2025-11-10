@@ -2000,14 +2000,15 @@ start_qemu()
 	else
 		printf "guest will be terminated after %d minute(s)\n" "$_arg_timeout"
 		"${qcmd[@]}" & sleep 5
-		timeout_sec="$(((_arg_timeout * 60) - 5))"
+		( timeout_sec="$(((_arg_timeout * 60) - 5))"
 		while ((timeout_sec > 0)); do
 			if ! guest_alive; then
 				break
 			fi
 			sleep 5
 			timeout_sec="$((timeout_sec - 5))"
-		done
+			set +x
+		done )
 		kill_guest
 	fi
 	popd > /dev/null || exit 1
