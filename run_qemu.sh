@@ -1443,10 +1443,14 @@ make_rootfs()
 	setup_autorun "mkosi.extra"
 
 	if [[ $_arg_debug == "on" ]]; then
-	    # In case of yet another mkosi incompatibility or other issue,
-	    # enable this line. WARNING: --debug options have "stability" issues
-	    # too! Check the man page of your specific mkosi version
-	    : # mkosi_opts+=('--debug-workspace' '--debug-shell' '--debug')
+		if test "$mkosi_ver" -lt 15; then
+			mkosi_opts+=('--debug=run')
+		else # See mkosi v15 commit a13e4b0e7056cc
+			mkosi_opts+=('--debug')
+		fi
+		# Newer options check the man page of your specific mkosi
+		# version, find links a the bottom of run_qemu/README.md
+		# mkosi_opts+=('--debug-workspace' '--debug-shell')
 	fi
 
 	mkosi_opts+=("build")
