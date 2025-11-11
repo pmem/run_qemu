@@ -1882,7 +1882,10 @@ prepare_qcmd()
 
 	qcmd+=("-device"   "virtio-blk,bus=pcie.0,drive=maindisk")
 
-	if [ $_arg_direct_kernel = "on" ] && [ -n "$vmlinuz" ] && [ -n "$initrd" ]; then
+	if [ $_arg_direct_kernel = "on" ]; then
+		local _err_fmt; _err_fmt="no %s found in $(pwd)/mkosi.extra/; try --no-direct-kernel?"
+		[ -n "$vmlinuz" ] || fail "$_err_fmt" 'vmlinuz*'
+		[ -n "$initrd" ]  || fail "$_err_fmt" 'initramfs*'
 		qcmd+=("-kernel" "$vmlinuz" "-initrd" "$initrd")
 		qcmd+=("-append" "${kcmd[*]}")
 	fi
