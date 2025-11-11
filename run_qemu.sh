@@ -2033,7 +2033,7 @@ main()
 	# Clean old kernels in qbuild/mkosi.extra/ and other outdated stuff from previous
 	# builds. This avoids old, non-functional kernels in the bootloader menus and confusing
 	# ESP "disk full" failures, see https://github.com/systemd/mkosi/issues/3948
-	rm -rf "$builddir"/mkosi.extra/
+	[[ $_arg_rebuild = no* ]] || rm -rf "$builddir"/mkosi.extra/
 	# Files in ../run_qemu/mkosi.extra/ will be copied and installed again later.
 
 	case "$_arg_rebuild" in
