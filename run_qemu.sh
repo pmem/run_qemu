@@ -603,6 +603,7 @@ install_build_initrd()
 	# and it expects a /lib/modules/$kver/vmlinuz
 	cp "$inst_path/vmlinuz-$kver" "$inst_prefix/lib/modules/$kver/vmlinuz"
 
+	local ret=0
 	dracut --force --verbose \
 		--no-hostonly \
 		--show-modules \
@@ -612,8 +613,29 @@ install_build_initrd()
 		--add "bash systemd kernel-modules fs-lib" \
 		--omit "iscsi fcoe fcoe-uefi" \
 		--omit-drivers "nfit libnvdimm nd_pmem" \
-		"$inst_path/initramfs-$kver.img"
+		"$inst_path/initramfs-$kver.img" || {
+	    ret=$?
+	    _dracut_106_warning
+	    }
+	return $ret
 }
+
+_dracut_106_warning()
+{
+	local _ver; _ver=$(dracut --version | awk '{print $2}')
+
+	[ "$_ver" = 106 ] || [ "$_ver" = 107 ] || return
+
+	# Fedora was never affected, see 1242 why
+	cat <<-EOF >&2
+
+	WARNING: some dracut versions v106 and v107 can fail with the following error
+	    *shadow: Cannot open: Permission denied
+	See bug https://github.com/dracut-ng/dracut-ng/issues/1242
+
+EOF
+}
+
 
 __build_kernel()
 {
