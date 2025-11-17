@@ -1063,8 +1063,6 @@ setup_depmod()
 	depmod_dir="$prefix/etc/depmod.d"
 	depmod_conf="$depmod_dir/nfit_test.conf"
 	depmod_cxl_conf="$depmod_dir/cxl_test.conf"
-	depmod_load_dir="$prefix/etc/modules-load.d"
-	depmod_load_cxl_conf="$depmod_load_dir/cxl_test.conf"
 
 	if [[ $_arg_nfit_test == "on" ]]; then
 		mkdir -p "$depmod_dir"
@@ -1093,13 +1091,8 @@ setup_depmod()
 			override cxl_mem * extra
 			override cxl_port * extra
 		EOF
-		mkdir -p "$depmod_load_dir"
-		cat <<- EOF > "$depmod_load_cxl_conf"
-			cxl_test
-		EOF
 	else
 		rm -f "$depmod_cxl_conf"
-		rm -f "$depmod_load_cxl_conf"
 	fi
 	system_map="$prefix/boot/System.map"
 	if [ ! -f "$system_map" ]; then
