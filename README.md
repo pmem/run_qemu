@@ -73,11 +73,15 @@ check the long mkosi section below.
          UserKnownHostsFile /dev/null
 
     And then `ssh rq`. You may need to open port 10022 on any local firewalls.
-    Then, the `dpipe` and `sshfs` programs can be used to let the guest access host
-    files. For instance:
-      `dpipe /usr/lib/ssh/sftp-server = ssh rq sshfs :$HOME/CXL /root/CXL -o slave`
-    Supposedly faster file sharing options like 9P or virtiofs exist but
-    they require much more complex configuration. This single line always
+    Then, the `dpipe` and `sshfs` programs can be used to let the guest access
+    host files. For instance, as found in `man sshfs`:
+       `dpipe /usr/lib/ssh/sftp-server = ssh rq sshfs :$HOME/CXL /root/CXL -o passive`
+    "sshfs -o passive" uses stdin and stdout instead of the guest connecting back
+    to the host over the network.
+    If you don't have `dpipe`, try the slightly less efficient:
+      `socat EXEC:/usr/lib/ssh/sftp-server SHELL:"'ssh rq sshfs :$HOME/CXL /root/CXL -o passive'"`
+    Supposedly faster file sharing options like 9P or virtiofs exist too but
+    they require much more complex configuration. `sshfs` generally
     works out of the box.
  - The root password for the guest VM is `root` by default but note many Linux
    distributions restrict remote root access in various ways. The serial console
