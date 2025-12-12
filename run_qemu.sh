@@ -611,7 +611,7 @@ install_build_initrd()
 		--kmoddir "$inst_prefix/lib/modules/$kver/" \
 		--kernel-image "./vmlinux" \
 		--add "bash systemd kernel-modules fs-lib" \
-		--omit "iscsi fcoe fcoe-uefi" \
+		--omit "iscsi fcoe fcoe-uefi multipath" \
 		--omit-drivers "nfit libnvdimm nd_pmem" \
 		"$inst_path/initramfs-$kver.img" || {
 	    ret=$?
