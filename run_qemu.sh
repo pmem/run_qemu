@@ -526,10 +526,10 @@ process_options_logic()
 		mkosi_opts+=(-m "$_arg_mirror")
 	fi
 	if [[ $_arg_kcmd_replace && ! -f "$_arg_kcmd_replace" ]]; then
-		fail "File not found: $_arg_kcmd_replace not in $(pwd)"
+		fail "File where replacement kernel command line reside not found: $_arg_kcmd_replace not in $(pwd). Do not pass in a string!"
 	fi
 	if [[ $_arg_kcmd_append && ! -f "$_arg_kcmd_append" ]]; then
-		fail "File not found: $_arg_kcmd_append not in $(pwd)"
+		fail "File where appended kernel command line resides not found: $_arg_kcmd_append not in $(pwd). Do not pass in a string!"
 	fi
 	if [[ $_arg_gdb_qemu == "on" ]] && [[ $gdb == "gdb" ]]; then
 		gdb_extra=("-ex" "handle SIGUSR1 noprint nostop")
