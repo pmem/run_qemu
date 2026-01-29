@@ -164,9 +164,14 @@ nfit_results_script="$script_dir/scripts/rq_nfit_results.sh"
 # /etc/os-release is what mkosi "detect_distribution()" uses too.
 get_os()
 {
-    awk -F= 'BEGIN  { notfound=1 }
-             /^ID=/ { print $2; notfound=0; exit }
-             END    { exit notfound }'     /etc/os-release
+    local ID_def
+
+    ID_def=$(awk -F= 'BEGIN  { notfound=1 }
+             /^ID=/ { print $0; notfound=0; exit }
+             END    { exit notfound }'     /etc/os-release)
+
+    # Some distros quote the value (e.g. ID="centos"), others not.
+    bash -c "$ID_def && "'printf %s "$ID"'
 }
 
 _host_distro=$(get_os)
@@ -1364,7 +1369,7 @@ make_rootfs()
 	local tmpl dst_base
 	for tmpl in "${script_dir}/${mkosi_ver_d}"/*.tmpl \
 		    "${script_dir}"/mkosi_tmpl_portable/*.tmpl \
-		    "${script_dir}"/mkosi.${_distro}.default.tmpl; do
+		    "${script_dir}"/mkosi."${_distro}".default.tmpl; do
 		dst_base=$(basename "${tmpl}")
 		# Strip all suffixes
 		dst_base=${dst_base%.tmpl}
