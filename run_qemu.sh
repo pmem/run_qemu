@@ -1662,6 +1662,8 @@ edk2_vmf_configure()
 	case "${_host_distro}__${guest_arch_toolchain}" in
 	    arch__x86_64)
 		xvmf_dir=OVMF/ovmf  ;;
+	    centos__x86_64)
+		xvmf_dir=edk2/ovmf ;;
 	    *)
 		xvmf_dir="$xVMF"  ;;
 	esac
