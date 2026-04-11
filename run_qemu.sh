@@ -288,6 +288,11 @@ backtrace()
 # especially when set -e interferes!  So, just save that $? ourselves
 # and show it clearly in --debug / set -x mode.
 trap 'exit_handler $?' EXIT
+# Mask INT/TERM during cleanup so kill_guest() runs uninterrupted —
+# otherwise the sleep and QMP commands in cleanup can be killed by a
+# second signal before QEMU is shut down.
+trap 'trap "" INT; exit 130' INT
+trap 'trap "" TERM; exit 143' TERM
 exit_handler()
 {
 	test "$1" = 0 || >&2 backtrace
