@@ -233,3 +233,48 @@ easily check the documentation of any version without installing anything.
   https://github.com/systemd/mkosi/blob/v15/mkosi/resources/mkosi.md
 - For versions 25 and above:
   https://github.com/systemd/mkosi/blob/v25/mkosi/resources/man/mkosi.1.md
+
+## AI Agent Plugin (MCP + Skill)
+
+`run_qemu` ships an AI agent plugin that exposes VM lifecycle management as
+structured MCP (Model Context Protocol) tools, plus a skill document with
+kernel testing workflows. This enables AI coding agents (GitHub Copilot CLI,
+Claude Code) to autonomously build kernels, boot VMs, run tests, and collect
+results.
+
+The MCP server requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+### Tools provided
+
+| Tool | Description |
+|------|-------------|
+| `vm_start` | Build kernel and boot VM (async, returns immediately) |
+| `vm_status` | Check state: `starting` → `ready` → `exited` |
+| `vm_run` | Run a command inside the VM via SSH |
+| `vm_log` | Read the VM's serial console log |
+| `vm_build_log` | Read the kernel build / mkosi output log |
+| `vm_dmesg` | Get kernel log from the VM |
+| `vm_stop` | Gracefully stop the VM |
+| `vm_list` | List all running VM instances |
+
+### GitHub Copilot CLI
+
+Install:
+```
+/plugin install /path/to/run_qemu
+```
+
+To update after a `git pull`, re-run the same command.
+
+### Claude Code
+
+Add the MCP server to your user-level MCP config:
+```bash
+claude mcp add run-qemu -s user -- uv run --directory /path/to/run_qemu/mcp server.py
+```
+
+Install the skill as a symlink (stays current after `git pull`, no update needed):
+```bash
+mkdir -p ~/.claude/skills
+ln -s /path/to/run_qemu/skills/run-qemu ~/.claude/skills/run-qemu
+```
