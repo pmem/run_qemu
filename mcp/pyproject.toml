@@ -1,0 +1,11 @@
+[project]
+name = "run-qemu-mcp"
+version = "0.1.0"
+description = "MCP server for run_qemu — build kernels and manage QEMU VMs"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0",
+]
+
+[project.scripts]
+run-qemu-mcp = "server:main"

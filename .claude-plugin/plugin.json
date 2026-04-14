@@ -1,0 +1,6 @@
+{
+  "name": "run-qemu",
+  "description": "Build Linux kernels and boot QEMU VMs with CXL/NUMA/NVDIMM topologies. MCP tools for VM lifecycle management + skill for kernel testing workflows.",
+  "version": "0.1.0",
+  "keywords": ["linux", "kernel", "qemu", "cxl", "numa", "nvdimm", "testing", "mcp"]
+}
