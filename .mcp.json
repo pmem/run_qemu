@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "run-qemu": {
+      "command": "uv",
+      "args": ["run", "--directory", "./mcp", "server.py"]
+    }
+  }
+}

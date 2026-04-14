@@ -1,3 +1,6 @@
 run_qemu_parser.sh
 *.swp
 *.swo
+mcp/__pycache__/
+mcp/tools/__pycache__/
+mcp/.venv/
