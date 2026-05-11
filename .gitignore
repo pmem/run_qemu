@@ -4,3 +4,4 @@ run_qemu_parser.sh
 mcp/__pycache__/
 mcp/tools/__pycache__/
 mcp/.venv/
+mcp/uv.lock
