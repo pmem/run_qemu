@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "mcp>=1.0",
+#     "mcp>=2.0,<3",
 # ]
 # ///
 """run_qemu MCP Server — tools for building kernels and managing QEMU VMs.
@@ -21,9 +21,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 if __name__ == "__main__":
     sys.modules["server"] = sys.modules[__name__]
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("run-qemu")
+mcp = MCPServer("run-qemu")
 
 # Import tool modules — they register tools via `from server import mcp`
 import tools.lifecycle  # noqa: F401
